@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar color="success" class="profile-toolbar start-title">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/beranda" color="light"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="profile-title">Profil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="profil-content">
+  <!-- 🌿 Header abu -->
+  <div class="profile-header"></div>
+
+  <!-- 🖼️ Foto Profil -->
+  <div class="profile-photo-wrapper" (click)="openImage()">
+    <img [src]="profileImage" alt="Profile" class="profile-img" />
+  </div>
+
+  <!-- 🌸 Wrapper konten -->
+  <div class="profile-wrapper">
+    <h2 class="profile-name">{{ user?.name }}</h2>
+
+    <div class="info-card">
+      <div class="info-row">
+        <span class="label">Email:</span>
+        <span class="value">{{ user?.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Jabatan:</span>
+        <span class="value">{{ user?.position || 'Karyawan' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Nomor Telepon:</span>
+        <span class="value">{{ user?.phone || '-' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Tanggal Bergabung:</span>
+        <span class="value">{{ user?.created_at | date: 'dd MMMM yyyy' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Alamat:</span>
+        <span class="value">{{ user?.address || 'Belum diisi' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔍 Modal Zoom Gambar -->
+  <ion-modal [isOpen]="showImage" (didDismiss)="closeImage()" cssClass="image-modal">
+    <ng-template>
+      <ion-content class="modal-content" (click)="closeImage()">
+        <img [src]="profileImage" alt="Zoom Profile" class="zoom-img circle" />
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- 🧭 Bottom Navigation -->
+  <ion-tab-bar slot="bottom" class="custom-tab-bar">
+    <ion-tab-button tab="beranda" routerLink="/beranda">
+      <ion-icon name="home-outline"></ion-icon>
+    </ion-tab-button>
+
+    <ion-tab-button tab="riwayat" routerLink="/riwayat">
+      <ion-icon name="time-outline"></ion-icon>
+    </ion-tab-button>
+
+    <ion-tab-button tab="profil" routerLink="/profil" class="tab-active">
+      <ion-icon name="person-circle-outline"></ion-icon>
+    </ion-tab-button>
+  </ion-tab-bar>
+
+  <!-- Footer nav (simple, selalu tampil) -->
+<ion-footer class="bottom-footer" translucent>
+  <ion-toolbar>
+    <div class="footer-nav">
+      <button class="nav-btn" routerLink="/beranda" aria-label="Beranda">
+        <ion-icon name="home-outline"></ion-icon>
+      </button>
+
+      <button class="nav-btn" routerLink="/riwayat" aria-label="Riwayat">
+        <ion-icon name="time-outline"></ion-icon>
+      </button>
+
+      <button class="nav-btn active" routerLink="/profil" aria-label="Profil">
+        <ion-icon name="person-circle-outline"></ion-icon>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-footer>
+</ion-content>

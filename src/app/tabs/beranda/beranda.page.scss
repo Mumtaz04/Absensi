@@ -1,0 +1,254 @@
+:host {
+  ion-content {
+    --background: #f4f8f4;
+    --padding-bottom: 90px;
+  }
+
+  /* ===== Header ===== */
+  ion-toolbar {
+    --background: #2eb85c;
+    --color: #fff;
+    text-align: center;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  .header-title {
+    margin: 0 auto;
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff;
+  }
+
+  /* ===== Profile Card (Fix tampilan Figma) ===== */
+  .profile-card {
+    background: #2eb85c;
+    color: #fff;
+    border-radius: 16px;
+    margin: 20px 16px 12px;
+    padding: 16px 14px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .profile-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .profile-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ffffff;
+    flex-shrink: 0;
+  }
+
+  .profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.2;
+  }
+
+  .profile-info h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .profile-info .email {
+    font-size: 13px;
+    font-weight: 400;
+    opacity: 0.9;
+  }
+
+  .profile-info .jabatan,
+  .profile-info .status {
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.95;
+  }
+
+  .profile-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.7);
+    margin: 12px 0 8px;
+  }
+
+  ion-item {
+    --background: transparent;
+    --color: #fff;
+    --inner-padding-end: 0;
+    font-weight: 600;
+    --padding-start: 0;
+    margin-top: 2px;
+  }
+
+  ion-item ion-label {
+    font-size: 14px;
+    text-transform: capitalize;
+  }
+
+  /* ===== Menu Izin & Riwayat ===== */
+  .dashboard-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 16px;
+    margin-top: 10px;
+  }
+
+  ion-card.izin-card {
+    margin: 0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .izin-card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+  }
+
+  .izin-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    color: #000;
+  }
+
+  .izin-left ion-icon {
+    font-size: 20px;
+    color: #2eb85c;
+  }
+
+  .arrow-icon {
+    color: #aaa;
+    font-size: 18px;
+  }
+
+  /* ===== Presensi Card ===== */
+  .presensi-card {
+    border-radius: 14px;
+    margin: 16px 16px;
+    background: #ffffff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    padding: 16px 14px;
+  }
+
+  .presensi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .presensi-header h3 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 15px;
+    color: #000;
+  }
+
+  .alert-icon {
+    font-size: 16px;
+    color: #e74c3c;
+  }
+
+  .presensi-body {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 12px 0 16px;
+  }
+
+  .presensi-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #d9d9d9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #555;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .waktu-label {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #000;
+  }
+
+  .status-text {
+    text-align: center;
+    color: #000;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .status-text .belum-presensi {
+    color: #e74c3c;
+    font-weight: 600;
+  }
+
+  /* ===== Statistik ===== */
+  .statistik-card {
+    background: #fff;
+    border-radius: 14px;
+    margin: 14px 16px 24px;
+    padding: 16px 14px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .statistik-card h3 {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .stat-row {
+    margin-bottom: 12px;
+  }
+
+  .top-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+
+  .bar-wrapper {
+    width: 100%;
+    height: 6px;
+    background: #f1f1f1;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .bar {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.3s ease;
+  }
+
+  .bar.hadir { background: #7ed957; }
+  .bar.terlambat { background: #fddf6d; }
+  .bar.cuti { background: #f5a07a; }
+  .bar.alfa { background: #7a7a7a; }
+}

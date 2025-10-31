@@ -1,0 +1,56 @@
+<ion-header translucent="true">
+  <ion-toolbar color="success">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/beranda" style="color: white;"></ion-back-button>
+    </ion-buttons>
+    <ion-title style="color: white;">Presensi</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="container">
+    <!-- CARD PRESENSI -->
+    <div class="card-presensi">
+      <p class="label-waktu">Waktu sekarang</p>
+
+      <div class="circle-time">
+        <h1 class="jam-sekarang">09 : 12</h1>
+      </div>
+
+      <div class="status-presensi">
+        <p>-- : --</p>
+        <span class="strip">—</span>
+        <p>-- : --</p>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn checkin">
+          <ion-icon name="log-in-outline"></ion-icon>
+          Check-In
+        </button>
+        <button class="btn checkout">
+          <ion-icon name="log-out-outline"></ion-icon>
+          Check-Out
+        </button>
+      </div>
+
+      <button class="riwayat-btn" routerLink="/riwayat-presensi">
+        <ion-icon name="calendar-clear-outline" class="calendar-icon"></ion-icon>
+        <span class="riwayat-text">Riwayat Presensi</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION -->
+  <div class="bottom-nav">
+    <div class="nav-item" routerLink="/tabs/beranda">
+      <ion-icon name="home-outline"></ion-icon>
+    </div>
+    <div class="nav-item active" routerLink="/tabs/presensi">
+      <ion-icon name="time-outline"></ion-icon>
+    </div>
+    <div class="nav-item" routerLink="/tabs/profil">
+      <ion-icon name="person-outline"></ion-icon>
+    </div>
+  </div>
+</ion-content>

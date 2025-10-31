@@ -1,0 +1,105 @@
+.data-content {
+  --background: #f5f5f5; // warna abu-abu muda seperti Figma
+  padding: 16px;
+}
+
+.data-card {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.data-row {
+  display: flex;
+  flex-direction: column;  /* 👈 ini kunci utama */
+  align-items: flex-start; /* teks rata kiri */
+  margin-bottom: 12px;     /* beri jarak antar baris */
+}
+
+.label {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 4px; /* jarak antara label dan value */
+}
+
+.value {
+  font-weight: 500;
+  font-size: 14px;
+  color: #000;
+}
+
+.value.muted {
+  color: #999;
+}
+
+.value.status {
+  color: #2ecc71; // hijau aktif
+  font-weight: bold;
+}
+
+/* ===== Styling untuk header agar teks dan ikon putih ===== */
+ion-toolbar[color="success"] {
+  --background: #4caf50; /* warna hijau seperti Figma */
+  --color: #ffffff;      /* warna teks putih */
+}
+
+/* Warna ikon panah back jadi putih */
+ion-back-button {
+  color: #ffffff !important;
+}
+
+/* Judul di header sedikit di tengah vertikal dan horizontal */
+ion-title {
+  color: #ffffff;
+  font-weight: 600;
+  text-align: center; /* tengah secara horizontal */
+  margin-left: -30px; /* menetralkan posisi karena tombol back */
+}
+
+/* ===== Styling konten utama ===== */
+.data-content {
+  --background: #f5f5f5;
+  padding: 16px;
+  display: flex;
+  justify-content: center; /* posisi card di tengah */
+}
+
+.data-card {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.data-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.label {
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.value {
+  font-weight: 500;
+  font-size: 14px;
+  color: #000;
+}
+
+.value.muted {
+  color: #999;
+}
+
+.value.status {
+  color: #2ecc71;
+  font-weight: bold;
+}

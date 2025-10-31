@@ -1,0 +1,133 @@
+/* ===== Header Atas ===== */
+ion-header ion-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  --background: var(--ion-color-success);
+}
+
+ion-header ion-title {
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  position: absolute;
+  top: 30%;
+  left: 51%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+ion-header ion-buttons {
+  position: absolute;
+  left: 8px;
+}
+
+ion-header ion-back-button {
+  color: #fff !important;
+}
+
+/* ===== Konten ===== */
+.riwayat-content {
+  --background: #f4f8f4;
+  padding: 16px;
+}
+
+/* ===== Header Bulan ===== */
+.month-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.month-header h2 {
+  font-weight: 700;
+  font-size: 17px;
+  color: #000;
+  margin: 0;
+}
+
+.nav-icon {
+  font-size: 20px;
+  color: #2eb85c; /* hijau tetap */
+}
+
+/* ===== Keterangan Warna ===== */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin: 18px 0;
+  font-size: 13px;
+  color: #333;
+}
+
+.legend .item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.dot.hadir { background: #fff; border: 1px solid #d0d0d0; } /* tidak perlu warna mencolok */
+.dot.terlambat { background: #fddf6d; border: 1px solid #d9b900; }
+.dot.cuti { background: #f5a07a; border: 1px solid #d47952; }
+.dot.alfa { background: #bcbcbc; border: 1px solid #888; }
+.dot.libur { background: #c3c5cc; border: 1px solid #92949c; }
+
+/* ===== Tabel ===== */
+.riwayat-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.riwayat-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.riwayat-table th {
+  background: #2ea4d3;
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.riwayat-table td {
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* ===== Warna baris sesuai status ===== */
+tr.terlambat { background: #fff3c4; }
+tr.cuti { background: #ffd6b5; }
+tr.alfa { background: #e0e0e0; }
+tr.libur { background: #d8dbe0; }
+
+tr:nth-child(even) {
+  border-bottom: 1px solid #eaeaea;
+}
+
+/* ===== Responsif ===== */
+@media (min-width: 768px) {
+  .riwayat-card {
+    max-width: 450px;
+    margin: 0 auto;
+  }
+}

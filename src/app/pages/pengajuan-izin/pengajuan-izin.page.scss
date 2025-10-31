@@ -1,0 +1,315 @@
+/* ============= PERBAIKAN HEADER (PANAH PUTIH & JUDUL TENGAH) ============= */
+
+/* ===== Header Atas ===== */
+ion-header ion-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  --background: var(--ion-color-success);
+}
+
+ion-header ion-title {
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  position: absolute;
+  top: 30%;
+  left: 51%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+ion-header ion-buttons {
+  position: absolute;
+  left: 8px;
+}
+
+ion-header ion-back-button {
+  color: #fff !important;
+}
+
+.back-btn ion-icon {
+ color: #fff;
+ font-size: 22px;
+}
+
+/* 📝 Card & Note */
+.card-note {
+ font-size: 13px;
+ color: #666;
+ margin-bottom: 14px;
+ text-align: center;
+}
+
+.required {
+ color: #e53935;
+ margin-left: 3px;
+}
+
+.form-card {
+ background: #fff;
+ border-radius: 18px;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+ion-card-content {
+ padding: 20px;
+}
+
+/* Form spacing */
+.form-group {
+ margin-bottom: 16px;
+}
+
+.section-title {
+ font-size: 15px;
+ font-weight: 600;
+ color: #333;
+ margin-bottom: 6px;
+}
+
+/* Input & Textarea */
+.form-input {
+ border: 1px solid #ddd;
+ border-radius: 10px;
+ padding: 10px 14px;
+ font-size: 15px;
+ background: #fff;
+ width: 100%;
+ box-sizing: border-box;
+}
+
+ion-textarea.form-input {
+ min-height: 90px;
+ line-height: 1.5;
+}
+
+/* 🗓️ Date Section */
+.date-row {
+ display: flex;
+ flex-direction: column;
+ gap: 14px;
+}
+
+.date-label {
+ font-size: 13px;
+ color: #444;
+ margin-bottom: 6px;
+}
+
+.date-field {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ border: 1px solid #ddd;
+ border-radius: 10px;
+ padding: 0 10px;
+ height: 44px;
+ background: #fff;
+ cursor: pointer;
+}
+
+.date-field ion-icon {
+ font-size: 20px;
+ color: #4caf50;
+}
+
+.calendar-inline {
+ margin-top: 10px;
+ border: 1px solid #eee;
+ border-radius: 12px;
+ background: #fff;
+ padding: 10px;
+}
+
+/* Durasi box */
+.duration-box {
+ background: #eaf6ea;
+ border-left: 4px solid #4caf50;
+ border-radius: 10px;
+ padding: 10px 12px;
+ margin-top: 10px;
+}
+
+/* 📎 Upload Section */
+.upload-note {
+ font-size: 13px;
+ color: #666;
+ margin: 4px 0 10px;
+}
+
+.upload-box {
+ border: 2px dashed #ff9800;
+ border-radius: 14px;
+ padding: 22px 10px;
+ text-align: center;
+ color: #fb8c00;
+ font-weight: 600;
+ background: #fff;
+ cursor: pointer;
+ position: relative;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: 6px;
+}
+
+.upload-input {
+ opacity: 0;
+ position: absolute;
+ inset: 0;
+ width: 100%;
+ height: 100%;
+}
+
+.upload-icon {
+ font-size: 40px;
+ color: #fb8c00;
+}
+
+.uploaded-list {
+ margin-top: 8px;
+}
+
+/* 🔔 Info di dalam card */
+.pengajuan-note {
+ text-align: center;
+ font-size: 13px;
+ color: #777;
+ margin: 14px 0 0;
+ line-height: 1.5;
+}
+
+/* ✅ Tombol Submit */
+.submit-btn {
+ --border-radius: 14px;
+ --background: #4caf50;
+ --color: #fff;
+ font-size: 16px;
+ font-weight: 600;
+ height: 52px;
+ margin-top: 20px;
+}
+
+/* ⚠️ Popup Notice */
+.notice-overlay {
+ position: fixed;
+ inset: 0;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ background: rgba(0, 0, 0, 0.4);
+ z-index: 999;
+}
+
+.notice-card {
+ width: 86%;
+ max-width: 360px;
+ border-radius: 12px;
+ background: #fff;
+ box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+ overflow: hidden;
+}
+
+.notice-header {
+ background: #2e9b3a;
+ padding: 12px;
+ text-align: center;
+}
+
+.notice-header-text {
+ color: #fff;
+ font-weight: 700;
+}
+
+.notice-body {
+ padding: 16px;
+ display: flex;
+ justify-content: center;
+}
+
+.notice-buttons {
+ display: flex;
+ gap: 12px;
+ width: 100%;
+}
+
+.btn-cancel,
+.btn-yes {
+ flex: 1;
+ border-radius: 8px;
+ padding: 10px 0;
+ font-weight: 600;
+ cursor: pointer;
+ border: none;
+}
+
+.btn-cancel {
+ background: #fff;
+ color: #2e9b3a;
+ border: 1px solid rgba(46, 155, 58, 0.15);
+}
+
+.btn-yes {
+ background: #fff;
+ color: #e53935;
+ border: 1px solid rgba(229, 57, 53, 0.15);
+}
+
+/* 🌿 Notice Hijau (Konfirmasi Ajukan) */
+.notice-card.green {
+  border-radius: 16px;
+  overflow: hidden;
+  width: 86%;
+  max-width: 360px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.green-header {
+  background: #2e9b3a;
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.green-header .notice-header-text {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.notice-body {
+  padding: 18px 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.notice-buttons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.btn-danger,
+.btn-success {
+  flex: 1;
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 10px;
+  padding: 10px 0;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-danger {
+  background: #fff;
+  color: #e53935;
+  border: 1.8px solid rgba(229, 57, 53, 0.2);
+}
+
+.btn-success {
+  background: #fff;
+  color: #2e9b3a;
+  border: 1.8px solid rgba(46, 155, 58, 0.2);
+}

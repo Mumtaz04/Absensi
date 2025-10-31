@@ -1,0 +1,123 @@
+<ion-header translucent="true">
+  <ion-toolbar color="success">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/beranda"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Riwayat Izin</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="riwayat-content ion-padding">
+
+  <ion-segment [(ngModel)]="filter" class="segment-filter">
+    <ion-segment-button value="semua">
+      <ion-label>Semua</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="disetujui">
+      <ion-label>Disetujui</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="ditolak">
+      <ion-label>Ditolak</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="menunggu">
+      <ion-label>Menunggu</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <div *ngFor="let izin of filteredIzin()" class="izin-card" [ngClass]="izin.status.toLowerCase()">
+    <div class="izin-content">
+      <div class="izin-header">
+        <h2>{{ izin.alasan }}</h2>
+        <span class="izin-tag" [ngClass]="izin.status.toLowerCase()">
+          <ion-icon
+            [name]="
+              izin.status.toLowerCase() === 'disetujui'
+                ? 'checkmark-circle-outline'
+                : izin.status.toLowerCase() === 'ditolak'
+                ? 'close-circle-outline'
+                : 'time-outline'
+            ">
+          </ion-icon>
+          {{ izin.status }}
+        </span>
+      </div>
+
+      <div class="izin-detail">
+        <p><ion-icon name="calendar-outline"></ion-icon>{{ izin.tanggal }}</p>
+        <p><ion-icon name="time-outline"></ion-icon>Durasi: {{ izin.durasi }}</p>
+        <p><ion-icon name="briefcase-outline"></ion-icon>{{ izin.deskripsi }}</p>
+        <p *ngIf="izin.status === 'Ditolak' && izin.alasan_ditolak" class="alasan">
+          <ion-icon name="alert-circle-outline"></ion-icon>Alasan: {{ izin.alasan_ditolak }}
+        </p>
+      </div>
+
+      <div class="izin-footer">
+        <span *ngIf="izin.status === 'Disetujui'">Disetujui {{ izin.tanggal_tinjau }}</span>
+        <span *ngIf="izin.status === 'Ditolak'">Ditolak {{ izin.tanggal_tinjau }}</span>
+        <span *ngIf="izin.status === 'Menunggu'">Menunggu persetujuan</span>
+
+        <ion-button fill="clear" size="small" color="primary" (click)="lihatDetail($event, izin)">
+          Detail
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showDetail" class="modal-overlay" (click)="tutupDetail()">
+    <div class="detail-card" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <h2>Detail</h2>
+        <span class="izin-tag" [ngClass]="izinTerpilih?.status.toLowerCase()">
+          <ion-icon
+            [name]="
+              izinTerpilih?.status.toLowerCase() === 'disetujui'
+                ? 'checkmark-circle-outline'
+                : izinTerpilih?.status.toLowerCase() === 'ditolak'
+                ? 'close-circle-outline'
+                : 'time-outline'
+            ">
+          </ion-icon>
+          {{ izinTerpilih?.status }}
+        </span>
+      </div>
+
+      <div class="detail-body">
+        <p><b>Alasan:</b></p>
+        <p class="detail-value">{{ izinTerpilih?.alasan }}</p>
+
+        <p><b>Deskripsi:</b></p>
+        <p class="detail-value">{{ izinTerpilih?.deskripsi }}</p>
+
+        <p><b>Waktu/Durasi Cuti:</b></p>
+        <p class="detail-value">
+          {{ izinTerpilih?.tanggal }}
+          <span *ngIf="izinTerpilih?.durasiKerja">({{ izinTerpilih.durasiKerja }})</span>
+        </p>
+
+        <div *ngIf="izinTerpilih?.tanggal_tinjau && izinTerpilih?.status !== 'Menunggu'">
+          <p><b>Waktu Ditinjau:</b></p>
+          <p class="detail-value">{{ izinTerpilih?.tanggal_tinjau }}</p>
+        </div>
+
+        <div *ngIf="izinTerpilih?.status === 'Ditolak' && izinTerpilih?.alasan_ditolak">
+          <p><b>Alasan Ditolak:</b></p>
+          <p class="detail-value rejected">{{ izinTerpilih?.alasan_ditolak }}</p>
+        </div>
+
+        <div *ngIf="izinTerpilih?.filePendukung?.length" class="file-section">
+          <p><b>File Pendukung:</b></p>
+          <div class="file-list">
+            <div *ngFor="let file of izinTerpilih.filePendukung" class="file-item">
+              <ion-icon name="document-attach-outline"></ion-icon>
+              <span>{{ file.nama }}</span>
+              <ion-button fill="outline" size="small" (click)="lihatFile(file.url)">Lihat</ion-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ion-button expand="block" color="medium" (click)="tutupDetail()">Tutup</ion-button>
+    </div>
+  </div>
+
+</ion-content>

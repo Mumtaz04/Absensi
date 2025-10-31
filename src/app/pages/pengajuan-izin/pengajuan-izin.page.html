@@ -1,0 +1,150 @@
+<ion-header>
+  <ion-toolbar color="success" class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" class="back-btn" (click)="onBackPressed()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="toolbar-title">Pengajuan Izin</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pengajuan-content">
+  <ion-card class="form-card">
+    <ion-card-content>
+      <p class="card-note">
+        Mohon lengkapi form berikut sebelum mengajukan izin.
+        <span class="required">*</span> wajib diisi.
+      </p>
+
+      <!-- Alasan -->
+      <div class="form-group">
+        <div class="section-title">Alasan <span class="required">*</span></div>
+        <ion-input
+          placeholder="Masukkan alasan izin"
+          [(ngModel)]="alasan"
+          class="form-input">
+        </ion-input>
+      </div>
+
+      <!-- Deskripsi -->
+      <div class="form-group">
+        <div class="section-title">Deskripsi <span class="required">*</span></div>
+        <ion-textarea
+          placeholder="Tuliskan deskripsi atau keterangan tambahan"
+          auto-grow="true"
+          [(ngModel)]="deskripsi"
+          class="form-input">
+        </ion-textarea>
+      </div>
+
+      <!-- Waktu / Durasi -->
+      <div class="form-group">
+        <div class="section-title">Waktu / Durasi <span class="required">*</span></div>
+
+        <div class="date-row">
+          <div class="date-group">
+            <label class="date-label">Dari</label>
+            <div class="date-field" (click)="toggleCalendar('mulai')">
+              <ion-input readonly [value]="tanggalMulai | date:'dd/MM/yyyy':'id-ID'"
+                placeholder="Pilih tanggal mulai"></ion-input>
+              <ion-icon name="calendar-outline"></ion-icon>
+            </div>
+            <div *ngIf="showCalendarMulai" class="calendar-inline">
+              <ion-datetime
+                [value]="tanggalMulai"
+                (ionChange)="onDateSelected($event, 'mulai')"
+                [min]="minDate"
+                [max]="maxDate"
+                presentation="date"
+                locale="id-ID">
+              </ion-datetime>
+            </div>
+          </div>
+
+          <div class="date-group">
+            <label class="date-label">Sampai</label>
+            <div class="date-field" (click)="toggleCalendar('selesai')">
+              <ion-input readonly [value]="tanggalSelesai | date:'dd/MM/yyyy':'id-ID'"
+                placeholder="Pilih tanggal selesai"></ion-input>
+              <ion-icon name="calendar-outline"></ion-icon>
+            </div>
+            <div *ngIf="showCalendarSelesai" class="calendar-inline">
+              <ion-datetime
+                [value]="tanggalSelesai"
+                (ionChange)="onDateSelected($event, 'selesai')"
+                [min]="tanggalMulai || minDate"
+                [max]="maxDate"
+                presentation="date"
+                locale="id-ID">
+              </ion-datetime>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="tanggalMulai && tanggalSelesai && durationInDays > 0" class="duration-box">
+          <strong>Durasi Izin: {{ durationInDays }} hari</strong>
+          <p>Dari {{ tanggalMulai | date:'dd MMMM yyyy':'id-ID' }}</p>
+          <p>Sampai {{ tanggalSelesai | date:'dd MMMM yyyy':'id-ID' }}</p>
+        </div>
+      </div>
+
+      <!-- Upload -->
+      <div class="form-group">
+        <div class="section-title">Upload File Pendukung</div>
+        <p class="upload-note">Jika ada, bisa berupa surat dokter atau surat resmi lainnya.</p>
+
+        <div class="upload-box" *ngIf="selectedFileNames.length === 0" (click)="fileInput.click()">
+          <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+          <span>Klik untuk unggah file pendukung</span>
+          <input type="file" multiple #fileInput class="upload-input"
+            (change)="onFileSelected($event)"
+            accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" />
+        </div>
+
+        <div class="uploaded-list" *ngIf="selectedFileNames.length > 0">
+          <div *ngFor="let name of selectedFileNames" class="file-item">
+            <ion-icon name="document-outline" class="file-icon"></ion-icon>
+            <span>{{ name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="pengajuan-note">
+        Pengajuan izin akan diproses setelah disetujui oleh atasan.
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button expand="block" class="submit-btn" (click)="openSubmitNotice()">Selesai dan Ajukan</ion-button>
+
+  <!-- Popup Konfirmasi Submit -->
+  <div *ngIf="showSubmitNotice" class="notice-overlay">
+    <div class="notice-card green">
+      <div class="green-header">
+        <p class="notice-header-text">Sudah yakin dengan pengajuan anda dan ajukan?</p>
+      </div>
+      <div class="notice-body">
+        <div class="notice-buttons">
+          <button class="btn-danger" (click)="cancelSubmit()">Periksa kembali</button>
+          <button class="btn-success" (click)="confirmSubmit()">Ya</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup Konfirmasi Kembali -->
+  <div *ngIf="showBackNotice" class="notice-overlay">
+    <div class="notice-card">
+      <div class="notice-header">
+        <p class="notice-header-text">Batalkan mengajukan izin dan kembali?</p>
+      </div>
+      <div class="notice-body">
+        <div class="notice-buttons">
+          <button class="btn-cancel" (click)="cancelNotice()">Tidak</button>
+          <button class="btn-yes" (click)="confirmBack()">Ya</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

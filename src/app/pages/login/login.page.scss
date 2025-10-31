@@ -1,0 +1,174 @@
+ion-content {
+  --background: url('/assets/bg.png') no-repeat center center / cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.background {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.logo-container {
+  margin-bottom: 15px;
+
+  .logo {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+.login-card {
+  width: 340px;
+  padding: 25px 30px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  text-align: center;
+}
+
+.login-card h2 {
+  color: #006c24;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+  border-color: #009c3d;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0, 156, 61, 0.2);
+}
+
+.input-group .input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #006c24;
+}
+
+.password-group .toggle-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #006c24;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.password-group .toggle-icon:hover {
+  color: #009c3d;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #00b24a 0%, #007a2f 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(0, 124, 46, 0.3);
+}
+
+.login-btn:hover {
+  background: linear-gradient(180deg, #00c153 0%, #007c2e 100%);
+  transform: translateY(-1px);
+}
+
+.login-btn:active {
+  transform: scale(0.98);
+}
+
+/* 📱 Android (default) */
+@media (max-width: 767px) {
+  .login-card {
+    width: 340px;
+  }
+}
+
+/* 📲 Tablet (layar 768px–1199px) */
+@media (min-width: 768px) and (max-width: 1199px) {
+  ion-content {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+  }
+
+  .login-card {
+    width: 500px; /* sedikit lebih lebar di tablet */
+    padding: 40px 60px;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .login-card h2 {
+    font-size: 22px;
+  }
+
+  .input-group input {
+    font-size: 15px;
+  }
+}
+
+/* 💻 Web / Desktop (layar 1200px ke atas) */
+@media (min-width: 1200px) {
+  ion-content {
+    align-items: center;
+    justify-content: center;
+    padding-top: 60px;
+  }
+
+  .login-card {
+    width: 700px; /* lebar di desktop */
+    padding: 50px 80px;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .login-card h2 {
+    font-size: 26px;
+    margin-bottom: 25px;
+  }
+
+  .input-group input {
+    font-size: 16px;
+    padding: 12px 45px;
+  }
+
+  .login-btn {
+    font-size: 18px;
+    padding: 14px;
+  }
+}
