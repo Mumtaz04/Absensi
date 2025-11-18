@@ -1,328 +1,318 @@
-/* Menetapkan warna teks (termasuk tombol kembali) di ion-toolbar */
-ion-toolbar {
- /* Mengatur warna judul dan ikon */
- --color: #ffffff; 
-}
-
-/* Memastikan judul rata tengah */
-ion-title {
- /* Ini seharusnya sudah ada secara default di mode MD/iOS, tapi pastikan */
- text-align: center; 
- color: #ffffff; /* Memastikan judul berwarna putih */
- margin-left: -35px;
-}
-
-ion-back-button {
- --color: #ffffff !important; /* Tambahkan !important agar pasti menimpa aturan lain */
-}
-
-.riwayat-content {
-  --background: #f5f7fa;
-  padding-top: 6px;
-}
-
-/* ===== SEGMENT FILTER ===== */
-.segment-filter {
-  display: flex;
-  justify-content: space-evenly;
-  background: transparent;
-  margin: 10px 0 16px 0;
-  gap: 6px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-}
-
-/* Reset style bawaan Ionic supaya gak tumpuk warna */
-ion-segment {
-  --background: transparent;
-}
-
-ion-segment-button {
-  --border-radius: 20px;
-  --background: #fff;
-  --indicator-color: transparent;
-  border-radius: 20px;
+/* 🔹 Header */
+.title-header {
   font-weight: 600;
-  font-size: 10px;
-  text-transform: none;
-  min-width: 90px;
-  height: 36px;
-  color: #555;
-  border: 1.3px solid #d1d5db;
-  transition: all 0.25s ease;
+  text-align: center;
 }
 
-/* ===== Warna aktif disesuaikan dengan warna card ===== */
-ion-segment-button[value="semua"].segment-button-checked::part(native) {
-  background: #3a6ff7 !important; /* biru card */
-  color: #fff !important;
-  border-color: #3a6ff7 !important;
-  box-shadow: 0 3px 6px rgba(58, 111, 247, 0.25);
-}
-ion-segment-button[value="disetujui"].segment-button-checked::part(native) {
-  background: #3a6ff7 !important; /* biru card */
-  color: #fff !important;
-  border-color: #3a6ff7 !important;
-  box-shadow: 0 3px 6px rgba(58, 111, 247, 0.25);
-}
-ion-segment-button[value="ditolak"].segment-button-checked::part(native) {
-  background: #3a6ff7 !important; /* biru card */
-  color: #fff !important;
-  border-color: #3a6ff7 !important;
-  box-shadow: 0 3px 6px rgba(58, 111, 247, 0.25);
-}
-ion-segment-button[value="menunggu"].segment-button-checked::part(native) {
-  background: #3a6ff7 !important; /* biru card */
-  color: #fff !important;
-  border-color: #3a6ff7 !important;
-  box-shadow: 0 3px 6px rgba(58, 111, 247, 0.25);
-}
-.ion-color-medium {
-    --ion-color-base: #0090f6 !important;
+.custom-toolbar {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  --background: var(--ion-color-success);
+  --color: #fff !important;   // warna default untuk teks di toolbar
 }
 
-/* Hilangkan bentuk persegi (biar oval halus) */
-ion-segment-button::part(native) {
-  border-radius: 22px !important;
+.toolbar-title {
+    display: block;
+    width: 90%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    pointer-events: auto;
+  }
+
+.toolbar-title {
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 0 auto;
+  color: #fff !important;     // judul putih
+  font-weight: 600;
 }
 
-/* ===== CARD ===== */
+/* Agar tombol back tidak menggeser title */
+.back-btn {
+  z-index: 10;
+  color: #fff !important;     // icon arrow putih
+  font-size: 24px;
+}
+
+/* 🔹 Dropdown Filter */
+.filter-dropdown {
+  display: flex;
+  justify-content: flex-start;
+  padding: 10px 16px;
+  background: #fff;
+}
+
+.filter-dropdown ion-select {
+  --placeholder-color: #000;
+  --color: #000;
+  font-size: 15px;
+  font-weight: 500;
+  width: 140px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: none;
+}
+
+/* 🔹 Kartu Riwayat Izin */
 .izin-card {
-  background: #ffffff;
+  background: #fff;
   border-radius: 16px;
-  margin: 14px 16px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
-  padding: 16px;
-  transition: all 0.3s ease;
+  margin: 10px 16px;
+  padding: 14px 16px;
+  border: 1px solid #e5e5e5;
+  box-shadow: none;
+  transition: transform 0.15s ease-in-out;
 }
 
-.izin-card:hover {
-  transform: scale(1.01);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
+.izin-card:active {
+  transform: scale(0.98);
 }
 
-/* Header: Judul + Tag status di kanan */
+/* Header di dalam Card */
 .izin-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  margin-bottom: 8px;
 }
 
-.izin-header h2 {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1f1f1f;
-  margin: 0;
+.izin-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #222;
+  flex: 1;
 }
 
-/* Tag Status */
-.izin-tag {
+.header-right {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+}
+
+/* 🔹 Status Badge */
+.izin-status {
   font-size: 13px;
-  font-weight: 600;
-  border-radius: 20px;
+  font-weight: 500;
   padding: 4px 10px;
-  border: 1.5px solid;
-  background: #fff;
+  border-radius: 20px;
+  text-transform: capitalize;
 }
 
-.izin-tag ion-icon {
-  font-size: 15px;
+.izin-status.disetujui {
+  background: #d7f5e7;
+  color: #2e7d32;
 }
 
-/* Warna sesuai status */
-.izin-tag.disetujui {
-  color: #22c55e;
-  border-color: #22c55e;
-}
-.izin-tag.ditolak {
-  color: #ef4444;
-  border-color: #ef4444;
-}
-.izin-tag.menunggu {
-  color: #f59e0b;
-  border-color: #f59e0b;
+.izin-status.menunggu {
+  background: #fff8d8;
+  color: #b28704;
 }
 
-/* Detail isi */
-.izin-detail {
-  margin-top: 8px;
+.izin-status.ditolak {
+  background: #fdeaea;
+  color: #d32f2f;
 }
 
-.izin-detail p {
-  font-size: 14px;
+/* 🔹 Isi Card */
+.izin-body {
+  font-size: 13.5px;
   color: #444;
+  margin-bottom: 4px;
+}
+
+.izin-body p {
   display: flex;
   align-items: center;
   gap: 6px;
   margin: 3px 0;
+  line-height: 1.4;
 }
 
-.izin-detail ion-icon {
-  font-size: 17px;
+.izin-body ion-icon {
+  font-size: 15px;
+  color: #666;
+}
+
+.izin-body .alasan {
+  color: #d32f2f;
+  font-weight: 500;
+}
+
+/* 🔹 Footer Card */
+.izin-footer {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
   color: #777;
 }
 
-.izin-detail .alasan {
-  color: #c62828;
+.detail-btn {
+  color: #007aff;
+  font-weight: 500;
+  cursor: pointer;
 }
 
-/* Footer */
-.izin-footer {
-  font-size: 13px;
-  color: #666;
-  margin-top: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.izin-footer a {
-  color: #3a6ff7;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 13.5px;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .izin-card {
-    margin: 10px 12px;
-  }
-  .izin-header h2 {
-    font-size: 15.5px;
-  }
-  .izin-detail p {
-    font-size: 13.5px;
-  }
-}
-
-/* ============= MODAL MANUAL (AMAN, TANPA FORCE CLOSE) ============= */
-.modal-overlay {
+/* 🔹 Overlay Popup */
+.overlay {
   position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* 🔹 Detail Popup */
+.detail-popup {
+  background: #fff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  padding: 22px 20px 20px;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.25s ease-in-out;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* 🔹 Garis warna di KIRI popup (bukan di atas) */
+.detail-popup.disetujui::before,
+.detail-popup.menunggu::before,
+.detail-popup.ditolak::before {
+  content: "";
+  position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-  animation: fadeIn 0.25s ease-in-out;
+  width: 4px;
+  height: 100%;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.97); }
-  to { opacity: 1; transform: scale(1); }
+.detail-popup.disetujui::before {
+  background-color: #2e7d32;
 }
 
-.detail-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 18px;
-  width: 90%;
-  max-width: 420px;
-  box-shadow: 0 5px 15px rgba(58, 111, 247, 0.25);
-  animation: slideUp 0.35s ease;
+.detail-popup.menunggu::before {
+  background-color: #b28704;
 }
 
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+.detail-popup.ditolak::before {
+  background-color: #d32f2f;
 }
 
-.detail-header {
+/* 🔹 Header Popup */
+.popup-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  margin-top: 4px;
 }
 
-.detail-header h2 {
+.popup-header h3 {
   font-size: 17px;
-  font-weight: 700;
-  color: #1f1f1f;
+  font-weight: 600;
+  color: #222;
   margin: 0;
 }
 
-.detail-body p {
-  font-size: 14px;
-  color: #333333;
-  line-height: 1.5;
-  margin: 6px 0;
-}
-
-.izin-tag {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 20px;
+.status-badge {
   padding: 4px 10px;
-  border: 1.5px solid;
-  background: #fff;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 
-.izin-tag.disetujui {
-  color: #22c55e;
-  border-color: #22c55e;
-}
-.izin-tag.ditolak {
-  color: #ef4444;
-  border-color: #ef4444;
-}
-.izin-tag.menunggu {
-  color: #f59e0b;
-  border-color: #f59e0b;
+.status-badge.disetujui {
+  background: #d7f5e7;
+  color: #2e7d32;
 }
 
-/* Bagian File Pendukung */
-.file-section {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
+.status-badge.menunggu {
+  background: #fff8d8;
+  color: #b28704;
 }
 
-.file-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 6px;
+.status-badge.ditolak {
+  background: #fdeaea;
+  color: #d32f2f;
 }
 
-.file-item {
-    display: flex; /* Kunci: Menggunakan Flexbox */
-    align-items: center;
-    gap: 8px;
-    padding: 4px 0;
-    justify-content: space-between; /* Opsional: Untuk melebarkan jarak antara nama file dan tombol */
+/* 🔹 Isi Detail */
+.detail-popup p {
+  margin: 0px 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column; /* 👉 Teks isi di bawah label */
 }
 
-.file-item ion-icon {
-    font-size: 20px;
-    color: #3a6ff7;
-    flex-shrink: 0; /* Pastikan ikon tidak mengecil */
+.detail-popup p b {
+  color: #111;
+  font-weight: 600;
+  margin-bottom: 2px; /* 👉 beri jarak kecil ke teks bawah */
+  display: block;
 }
 
-.file-item span {
-    flex-grow: 1; /* Kunci: Memungkinkan nama file mengambil semua ruang yang tersedia */
-    font-size: 14px;
-    color: #333;
-    overflow: hidden; /* Tambahkan ini untuk penanganan teks panjang */
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+
+/* 🔹 Tombol Tutup */
+.close-btn {
+  margin-top: 18px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background-color: #4caf50;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
 }
 
-/* Kunci: Mengatur tombol agar tidak mengambil lebar penuh (fill="outline" sudah membantu, tapi ini lebih eksplisit) */
-.file-item ion-button {
-    margin: 0;
-    height: 30px; /* Opsional: untuk tinggi tombol yang lebih kecil */
-    font-size: 12px;
-    flex-shrink: 0; /* Pastikan tombol tidak mengecil */
-    /* Menghilangkan fill="outline" jika menggunakan fill="clear" atau mengisi sendiri */
+.close-btn:hover {
+  background-color: #43a047;
+}
+/* 🔹 File Pendukung */
+.file-link {
+  color: #007aff;
+  font-weight: 500;
+  cursor: pointer;
+  display: block;
+  margin-top: 4px;
+  transition: opacity 0.2s ease-in-out;
 }
 
+.file-link:hover {
+  opacity: 0.8;
+}
+
+/* 🔹 Animasi */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

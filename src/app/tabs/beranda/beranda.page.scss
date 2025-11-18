@@ -1,254 +1,382 @@
-:host {
-  ion-content {
-    --background: #f4f8f4;
-    --padding-bottom: 90px;
-  }
 
-  /* ===== Header ===== */
-  ion-toolbar {
-    --background: #2eb85c;
-    --color: #fff;
-    text-align: center;
-    border: none;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  }
+.beranda-content {
+  --background: #f5f6fa;
+  padding-bottom: 20px;
+}
 
-  .header-title {
-    margin: 0 auto;
-    font-weight: 700;
-    font-size: 18px;
-    color: #fff;
-  }
+/* 🌿 Header hijau melengkung */
+.header-green {
+  background-color: #27ae60;
+  width: 120%;
+  margin-left: -10%;
+  border-bottom-left-radius: 40px;
+  border-bottom-right-radius: 40px;
+  padding: 40px 60px 90px;
+  text-align: left;
+  color: #fff;
+}
 
-  /* ===== Profile Card (Fix tampilan Figma) ===== */
-  .profile-card {
-    background: #2eb85c;
-    color: #fff;
-    border-radius: 16px;
-    margin: 20px 16px 12px;
-    padding: 16px 14px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
+.header-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
 
-  .profile-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+.header-subtitle {
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.9;
+}
 
-  .profile-photo {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #ffffff;
-    flex-shrink: 0;
-  }
+/* 👤 Profil card */
+.profile-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: -60px 20px 20px;
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
 
-  .profile-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    line-height: 1.2;
-  }
+.profile-card:hover {
+  transform: scale(1.01);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
 
-  .profile-info h2 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
-  }
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
-  .profile-info .email {
-    font-size: 13px;
-    font-weight: 400;
-    opacity: 0.9;
-  }
+.profile-photo {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 
-  .profile-info .jabatan,
-  .profile-info .status {
-    font-size: 13px;
-    font-weight: 500;
-    opacity: 0.95;
-  }
+.profile-info h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
 
-  .profile-divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.7);
-    margin: 12px 0 8px;
-  }
+.profile-info p {
+  margin: 3px 0;
+  color: #777;
+  font-size: 14px;
+}
 
-  ion-item {
-    --background: transparent;
-    --color: #fff;
-    --inner-padding-end: 0;
-    font-weight: 600;
-    --padding-start: 0;
-    margin-top: 2px;
-  }
+.profile-info .jabatan span,
+.profile-info .status span {
+  color: #27ae60;
+  font-weight: 500;
+}
 
-  ion-item ion-label {
-    font-size: 14px;
-    text-transform: capitalize;
-  }
+/* Container dua kartu izin */
+.izin-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 20px;
+}
 
-  /* ===== Menu Izin & Riwayat ===== */
-  .dashboard-card {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 0 16px;
-    margin-top: 10px;
-  }
+/* Card dasar */
+.izin-card {
+  flex: 1;
+  padding: 24px 10px;
+  border-radius: 20px;
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column; /* 👉 ubah jadi vertikal */
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.2s ease;
+}
 
-  ion-card.izin-card {
-    margin: 0;
-    border-radius: 14px;
-    background: #ffffff;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-  }
+/* Efek hover */
+.izin-card:hover {
+  transform: translateY(-3px);
+}
 
-  .izin-card-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 18px;
-  }
+/* Warna kartu */
+.izin-card.yellow {
+  background: #f4b400; /* Kuning hangat */
+}
 
-  .izin-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: 15px;
-    color: #000;
-  }
+.izin-card.purple {
+  background: linear-gradient(135deg, #a142f4, #8e24aa); /* gradasi ungu */
+}
 
-  .izin-left ion-icon {
-    font-size: 20px;
-    color: #2eb85c;
-  }
+/* Ikon */
+.izin-card ion-icon {
+  font-size: 36px;
+  margin-bottom: 8px; /* beri jarak dengan teks */
+}
 
-  .arrow-icon {
-    color: #aaa;
-    font-size: 18px;
-  }
+/* Teks */
+.izin-card span {
+  font-size: 15px;
+  letter-spacing: 0.4px;
+  color: #fff;
+}
 
-  /* ===== Presensi Card ===== */
-  .presensi-card {
-    border-radius: 14px;
-    margin: 16px 16px;
-    background: #ffffff;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-    padding: 16px 14px;
-  }
+/* Titik notifikasi (merah kecil di pojok) */
+.notif-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+}
 
-  .presensi-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-  }
+/* 🕒 Presensi Hari Ini */
+/* CARD STATUS */
+/* CARD */
+.presensi-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  margin: 16px 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
 
-  .presensi-header h3 {
-    margin: 0;
-    font-weight: 700;
-    font-size: 15px;
-    color: #000;
-  }
+/* Header */
+/* ============================
+   🕒 PRESENSI — HEADER & BADGE
+=============================== */
 
-  .alert-icon {
-    font-size: 16px;
-    color: #e74c3c;
-  }
+/* Header Judul */
+.presensi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
 
-  .presensi-body {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin: 12px 0 16px;
-  }
+.presensi-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1C1C1C;
+}
 
-  .presensi-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+/* === BADGE STATUS (Belum / Hadir / Selesai) === */
+.status-badge {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 30px;
+}
 
-  .circle {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: #d9d9d9;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #555;
-    font-weight: 600;
-    font-size: 16px;
-  }
+/* Belum Presensi */
+.status-badge.belum {
+  background: rgba(255, 205, 86, 0.3);
+  color: #D19500;
+}
 
-  .waktu-label {
-    margin-top: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #000;
-  }
+/* Sudah Hadir (check-in) */
+.status-badge.hadir {
+  background: rgba(39, 174, 96, 0.2);
+  color: #1B5E20;
+}
 
-  .status-text {
-    text-align: center;
-    color: #000;
-    font-size: 13px;
-    font-weight: 500;
-  }
+/* Selesai Presensi (check-out) */
+.status-badge.selesai {
+  background: rgba(39, 174, 96, 0.2);
+  color: #1B5E20;
+}
 
-  .status-text .belum-presensi {
-    color: #e74c3c;
-    font-weight: 600;
-  }
 
-  /* ===== Statistik ===== */
-  .statistik-card {
-    background: #fff;
-    border-radius: 14px;
-    margin: 14px 16px 24px;
-    padding: 16px 14px;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-  }
 
-  .statistik-card h3 {
-    text-align: center;
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 12px;
-  }
+/* PRESENSI BOX AREA */
+.presensi-body {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
 
-  .stat-row {
-    margin-bottom: 12px;
-  }
+.presensi-box-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  .top-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-  }
+/* BOX JAM */
+.presensi-box {
+  width: 100%;
+  border-radius: 16px;
+  padding: 18px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  .bar-wrapper {
-    width: 100%;
-    height: 6px;
-    background: #f1f1f1;
-    border-radius: 8px;
-    overflow: hidden;
-  }
+.presensi-box h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
 
-  .bar {
-    height: 100%;
-    border-radius: 8px;
-    transition: width 0.3s ease;
-  }
+/* WARNA SESUAI FIGMA */
+.presensi-box.masuk {
+  background: #A9F5BC !important;
+  color: #1B5E20 !important;
+}
 
-  .bar.hadir { background: #7ed957; }
-  .bar.terlambat { background: #fddf6d; }
-  .bar.cuti { background: #f5a07a; }
-  .bar.alfa { background: #7a7a7a; }
+.presensi-box.keluar {
+  background: #BBDEFB !important;
+  color: #0D47A1 !important;
+}
+
+/* LABEL */
+.presensi-label {
+  font-size: 13px;
+  color: #666;
+  margin-top: 6px;
+}
+
+/* Pesan */
+.presensi-message {
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.presensi-message.warning {
+  color: #d9534f; /* Merah */
+}
+
+.presensi-message.tepat {
+  color: #28a745; /* Hijau */
+}
+
+.presensi-message.telat {
+  color: #f0ad4e; /* Kuning */
+}
+
+/* Kotak jam */
+.presensi-box {
+  width: 100%;
+  border-radius: 16px;
+  padding: 14px 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.presensi-box h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Warna kotak sesuai Figma */
+.presensi-box.masuk {
+  background: #a9f5bc; /* Hijau muda */
+  color: #1b5e20;
+}
+
+.presensi-box.keluar {
+  background: #bbdefb; /* 💙 Biru muda lembut */
+  color: #0d47a1;      /* Biru teks yang kontras */
+}
+
+/* Label di bawah kotak */
+.label-masuk,
+.label-keluar {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+}
+
+
+/* 📊 Statistik Bulanan */
+.statistik-card {
+  background: #fff;
+  border-radius: 20px;
+  margin: 16px 20px 80px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.statistik-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* Baris tiap data statistik */
+.stat-row {
+  margin-bottom: 14px;
+}
+
+.stat-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+.bar-bg {
+  width: 100%;
+  height: 8px;
+  background-color: #eee;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Progress bar warna */
+.bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease-in-out;
+}
+
+/* Warna tiap kategori */
+.bar.hadir {
+  background-color: #4caf50; /* hijau */
+}
+
+.bar.terlambat {
+  background-color: #fbc02d; /* kuning */
+}
+
+.bar.cuti {
+  background-color: #42a5f5; /* biru */
+}
+
+.bar.alfa {
+  background-color: #e74c3c; /* merah */
+}
+
+/* 🌿 CSS Detail Profil */
+.btn-profile {
+  --background: #f4f4f4;
+  --color: #333;              /* Warna teks */
+  --border-color: #ccc;       /* Warna border */
+  --border-width: 1px;
+  --border-radius: 10px;
+  font-weight: 500;
+  text-transform: none;       /* Biar teks tidak kapital semua */
+  letter-spacing: 0.3px;
+}
+
+.btn-profile::part(native) {
+  box-shadow: none !important; /* Hilangkan efek biru glow di Android */
 }

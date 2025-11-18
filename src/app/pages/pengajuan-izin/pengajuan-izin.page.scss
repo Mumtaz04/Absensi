@@ -313,3 +313,11 @@ ion-textarea.form-input {
   color: #2e9b3a;
   border: 1.8px solid rgba(46, 155, 58, 0.2);
 }
+
+::ng-deep ion-datetime .today-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4caf50; /* hijau lembut */
+  margin-left: 8px;
+  white-space: nowrap;
+}

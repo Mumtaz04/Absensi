@@ -1,7 +1,23 @@
 import { Component } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, NavController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+interface FilePendukung {
+  nama: string;
+  url: string;
+}
+
+interface Izin {
+  alasan: string;
+  tanggal: string;
+  durasi: string;
+  deskripsi: string;
+  status: 'Disetujui' | 'Ditolak' | 'Menunggu';
+  tanggal_tinjau?: string;
+  alasan_ditolak?: string;
+  filePendukung: FilePendukung[];
+}
 
 @Component({
   standalone: true,
@@ -11,11 +27,15 @@ import { FormsModule } from '@angular/forms';
   imports: [IonicModule, CommonModule, FormsModule],
 })
 export class RiwayatIzinPage {
-  filter: string = 'semua';
-  showDetail: boolean = false;
-  izinTerpilih: any = null;
 
-  daftarIzin = [
+  constructor(private navCtrl: NavController) {}   // ✅ ditambahkan
+
+  /** 🔹 Filter aktif */
+  filter: string = 'Semua';
+  filters: string[] = ['Semua', 'Disetujui', 'Menunggu', 'Ditolak'];
+
+  /** 🔹 Data izin */
+  daftarIzin: Izin[] = [
     {
       alasan: 'Izin Cuti',
       tanggal: '8 Okt 2025 - 10 Okt 2025',
@@ -23,10 +43,7 @@ export class RiwayatIzinPage {
       deskripsi: 'Liburan keluarga',
       status: 'Disetujui',
       tanggal_tinjau: '5 Okt 2025, 14:20',
-      alasan_ditolak: '',
-      filePendukung: [
-        { nama: 'Surat Cuti.pdf', url: 'assets/surat-cuti.jpg' },
-      ],
+      filePendukung: [{ nama: 'Surat Cuti.pdf', url: 'assets/surat-cuti.jpg' }],
     },
     {
       alasan: 'Izin Urusan Keluarga',
@@ -36,9 +53,7 @@ export class RiwayatIzinPage {
       status: 'Ditolak',
       tanggal_tinjau: '1 Okt 2025, 16:45',
       alasan_ditolak: 'Jadwal proyek padat',
-      filePendukung: [
-        { nama: 'Undangan Acara.jpg', url: 'assets/files/undangan.jpg' },
-      ],
+      filePendukung: [],
     },
     {
       alasan: 'Izin Sakit',
@@ -47,31 +62,42 @@ export class RiwayatIzinPage {
       deskripsi: 'Sakit demam',
       status: 'Menunggu',
       tanggal_tinjau: '-',
-      alasan_ditolak: '',
       filePendukung: [],
     },
   ];
 
-  filteredIzin() {
-    if (this.filter === 'semua') return this.daftarIzin;
+  izinTerpilih: Izin | null = null;
+
+  /** 🔹 Ganti filter aktif */
+  setFilter(f: string): void {
+    this.filter = f;
+  }
+
+  /** 🔹 Filter daftar izin */
+  filteredIzin(): Izin[] {
+    if (!this.filter || this.filter.toLowerCase() === 'semua') {
+      return this.daftarIzin;
+    }
+
     return this.daftarIzin.filter(
-      izin => izin.status.toLowerCase() === this.filter
+      izin => izin.status.toLowerCase() === this.filter.toLowerCase()
     );
   }
 
-  lihatDetail(event: Event, izin: any) {
-    event.preventDefault();
-    event.stopPropagation();
+  /** 🔹 Toggle detail */
+  toggleDetail(izin: Izin | null): void {
     this.izinTerpilih = izin;
-    this.showDetail = true;
   }
 
-  tutupDetail() {
-    this.showDetail = false;
-    this.izinTerpilih = null;
+  /** 🔹 Buka file pendukung */
+  lihatFile(url: string): void {
+    if (url) window.open(url, '_blank');
   }
 
-  lihatFile(url: string) {
-    window.open(url, '_blank');
+  /** 🔹 FIX: Fungsi back yg hilang */
+  onBackPressed(): void {
+    this.navCtrl.back();
+    // alternatif jika ingin paksa kembali:
+    // window.history.back();
   }
 }

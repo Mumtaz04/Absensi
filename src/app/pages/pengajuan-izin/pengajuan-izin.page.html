@@ -43,15 +43,21 @@
         <div class="section-title">Waktu / Durasi <span class="required">*</span></div>
 
         <div class="date-row">
+          <!-- Kalender Dari -->
           <div class="date-group">
             <label class="date-label">Dari</label>
             <div class="date-field" (click)="toggleCalendar('mulai')">
-              <ion-input readonly [value]="tanggalMulai | date:'dd/MM/yyyy':'id-ID'"
-                placeholder="Pilih tanggal mulai"></ion-input>
+              <ion-input
+                readonly
+                [value]="tanggalMulai | date:'dd/MM/yyyy':'id-ID'"
+                placeholder="Pilih tanggal mulai">
+              </ion-input>
               <ion-icon name="calendar-outline"></ion-icon>
             </div>
+
             <div *ngIf="showCalendarMulai" class="calendar-inline">
               <ion-datetime
+                #kalenderMulai
                 [value]="tanggalMulai"
                 (ionChange)="onDateSelected($event, 'mulai')"
                 [min]="minDate"
@@ -62,15 +68,21 @@
             </div>
           </div>
 
+          <!-- Kalender Sampai -->
           <div class="date-group">
             <label class="date-label">Sampai</label>
             <div class="date-field" (click)="toggleCalendar('selesai')">
-              <ion-input readonly [value]="tanggalSelesai | date:'dd/MM/yyyy':'id-ID'"
-                placeholder="Pilih tanggal selesai"></ion-input>
+              <ion-input
+                readonly
+                [value]="tanggalSelesai | date:'dd/MM/yyyy':'id-ID'"
+                placeholder="Pilih tanggal selesai">
+              </ion-input>
               <ion-icon name="calendar-outline"></ion-icon>
             </div>
+
             <div *ngIf="showCalendarSelesai" class="calendar-inline">
               <ion-datetime
+                #kalenderSelesai
                 [value]="tanggalSelesai"
                 (ionChange)="onDateSelected($event, 'selesai')"
                 [min]="tanggalMulai || minDate"
@@ -82,6 +94,7 @@
           </div>
         </div>
 
+        <!-- Durasi -->
         <div *ngIf="tanggalMulai && tanggalSelesai && durationInDays > 0" class="duration-box">
           <strong>Durasi Izin: {{ durationInDays }} hari</strong>
           <p>Dari {{ tanggalMulai | date:'dd MMMM yyyy':'id-ID' }}</p>
@@ -97,7 +110,11 @@
         <div class="upload-box" *ngIf="selectedFileNames.length === 0" (click)="fileInput.click()">
           <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
           <span>Klik untuk unggah file pendukung</span>
-          <input type="file" multiple #fileInput class="upload-input"
+          <input
+            type="file"
+            multiple
+            #fileInput
+            class="upload-input"
             (change)="onFileSelected($event)"
             accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" />
         </div>
@@ -116,13 +133,17 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-button expand="block" class="submit-btn" (click)="openSubmitNotice()">Selesai dan Ajukan</ion-button>
+  <ion-button expand="block" class="submit-btn" (click)="openSubmitNotice()">
+    Selesai dan Ajukan
+  </ion-button>
 
   <!-- Popup Konfirmasi Submit -->
   <div *ngIf="showSubmitNotice" class="notice-overlay">
     <div class="notice-card green">
       <div class="green-header">
-        <p class="notice-header-text">Sudah yakin dengan pengajuan anda dan ajukan?</p>
+        <p class="notice-header-text">
+          Sudah yakin dengan pengajuan anda dan ajukan?
+        </p>
       </div>
       <div class="notice-body">
         <div class="notice-buttons">

@@ -1,17 +1,26 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Tab 3
-    </ion-title>
+  <ion-toolbar color="success">
+    <ion-title color="light">Akun Saya</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="profile-container" *ngIf="user; else loading">
+    <img
+      [src]="getUserPhotoUrl()"
+      alt="Foto Profil"
+      class="profile-photo"
+      (error)="onImageError($event)"
+    />
+    <h2>{{ user.name }}</h2>
+    <p>{{ user.email }}</p>
+    <p *ngIf="user.jabatan">Jabatan: {{ user.jabatan }}</p>
+  </div>
 
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+  <ng-template #loading>
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Memuat data akun...</p>
+    </div>
+  </ng-template>
 </ion-content>

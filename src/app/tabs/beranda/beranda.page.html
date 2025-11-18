@@ -1,45 +1,32 @@
-<ion-header>
-  <ion-toolbar color="success">
-    <ion-title class="header-title">Beranda</ion-title>
-  </ion-toolbar>
+<ion-header class="no-border">
+  <!-- Ganti toolbar default dengan header custom -->
 </ion-header>
 
 <ion-content [fullscreen]="true" class="beranda-content">
 
-  <!-- ===============================
-       🌿 Profile Card (dengan foto & info)
-  =============================== -->
-  <div class="profile-card" *ngIf="user; else loadingProfile">
-    <div class="profile-row">
-      <!-- Foto profil -->
-      <img
-        [src]="getUserPhotoUrl() || 'assets/img/default-profile.png'"
-        (error)="onPhotoError($event)"
-        alt="Foto Profil"
-        class="profile-photo"
-      />
+  <!-- 🌿 Header Hijau Lengkung -->
+  <div class="header-green">
+    <h1 class="header-title">Selamat Datang</h1>
+    <p class="header-subtitle">Dashboard Presensi</p>
+  </div>
 
-      <!-- Info pengguna -->
+    <!-- 👤 Kartu Profil -->
+    <!-- ✅ Card Profil — seluruh card bisa diklik -->
+    <div class="profile-card" (click)="goToProfile()">
+      <div class="profile-header">
+        <img [src]="userPhotoUrl" (error)="onPhotoError($event)" alt="Foto Profil" class="profile-photo" />
       <div class="profile-info">
-        <h2>{{ user?.name || 'Nama tidak tersedia' }}</h2>
-        <p class="email">{{ user?.email || '-' }}</p>
-        <p class="jabatan">
-          Jabatan: <span>{{ user?.position || '-' }}</span>
-        </p>
-        <p class="status">
-          Status: <span>{{ user?.status || '-' }}</span>
-        </p>
+        <h2>{{ user?.name || 'Nama User' }}</h2>
+        <p>{{ user?.position || 'Jabatan' }}</p>
+        <p>{{ user?.email || 'email@example.com' }}</p>
       </div>
     </div>
 
-    <div class="profile-divider"></div>
+    <!-- Tombol tetap kelihatan tapi tidak klik terpisah -->
+      <!-- <ion-button expand="block" fill="outline" class="detail-btn">Detail Profil</ion-button> -->
+    </div>
 
-    <ion-item button detail="true" (click)="goToProfile()">
-      <ion-label>Detail Profil</ion-label>
-    </ion-item>
-  </div>
-
-  <!-- 🔄 Tampilan saat user belum termuat -->
+  <!-- 🔄 Loading -->
   <ng-template #loadingProfile>
     <div class="profile-loading">
       <ion-spinner name="crescent" color="success"></ion-spinner>
@@ -47,101 +34,101 @@
     </div>
   </ng-template>
 
-  <!-- ===============================
-       📄 Menu Izin & Riwayat
-  =============================== -->
-  <div class="dashboard-card">
-    <ion-card class="izin-card" (click)="goToPengajuanIzin()">
-      <div class="izin-card-content">
-        <div class="izin-left">
-          <ion-icon name="document-text-outline"></ion-icon>
-          <span>Pengajuan Izin</span>
-        </div>
-        <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
-      </div>
-    </ion-card>
+  <!-- 📄 Menu Dua Kotak -->
+  <div class="izin-section">
+    <div class="izin-card yellow" (click)="goToPengajuanIzin()">
+      <ion-icon name="document-text-outline"></ion-icon>
+      <span>Pengajuan Izin</span>
+    </div>
 
-    <ion-card class="izin-card" (click)="goToRiwayatIzin()">
-      <div class="izin-card-content">
-        <div class="izin-left">
-          <ion-icon name="time-outline"></ion-icon>
-          <span>Riwayat Izin</span>
+    <div class="izin-card purple" (click)="goToRiwayatIzin()">
+      <ion-icon name="time-outline"></ion-icon>
+      <span>Riwayat Izin</span>
+    </div>
+  </div>
+  <!-- <div class="notif-dot"></div> -->
+
+  <!-- ⏰ Presensi -->
+  <!-- CARD STATUS PRESENSI -->
+  <!-- CARD PRESENSI -->
+  <div class="presensi-card">
+    <div class="presensi-header">
+      <h3>Status Hari Ini</h3>
+
+      <!-- Badge Dinamis -->
+      <span class="status-badge"
+        [ngClass]="{
+          'belum': statusPresensi.status === 'belum',
+          'hadir': statusPresensi.status === 'hadir_tepat' || statusPresensi.status === 'hadir_telat',
+          'selesai': statusPresensi.status === 'selesai'
+        }"
+      >
+        {{ 
+          statusPresensi.status === 'belum' 
+            ? 'Belum Presensi' 
+            : (statusPresensi.status === 'selesai' 
+                ? 'Selesai' 
+                : 'Hadir')
+        }}
+      </span>
+    </div>
+
+    <!-- Box Check In / Out -->
+    <div class="presensi-body">
+      <div class="presensi-box-group">
+        <div class="presensi-box masuk">
+          <h2>{{ statusPresensi.jamCheckin || '--:--' }}</h2>
         </div>
-        <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+        <span class="presensi-label">Check In</span>
       </div>
-    </ion-card>
+
+      <div class="presensi-box-group">
+        <div class="presensi-box keluar">
+          <h2>{{ statusPresensi.jamCheckout || '--:--' }}</h2>
+        </div>
+        <span class="presensi-label">Check Out</span>
+      </div>
+    </div>
+
+    <p class="presensi-message"
+      [ngClass]="{
+        'warning': statusPresensi.status === 'belum',
+        'tepat': statusPresensi.status === 'hadir_tepat',
+        'telat': statusPresensi.status === 'hadir_telat'
+      }">
+      {{ statusPresensi.pesan }}
+    </p>
   </div>
 
-  <!-- ===============================
-       ⏰ Presensi Hari Ini
-  =============================== -->
-  <ion-card class="presensi-card">
-    <div class="presensi-header">
-      <h3>Presensi Hari Ini</h3>
-      <ion-icon name="alert-circle-outline" class="alert-icon"></ion-icon>
-    </div>
 
-    <div class="presensi-body">
-      <div class="presensi-col">
-        <div class="circle">-- : --</div>
-        <div class="waktu-label">Waktu Masuk</div>
-      </div>
-      <div class="presensi-col">
-        <div class="circle">-- : --</div>
-        <div class="waktu-label">Waktu Keluar</div>
-      </div>
-    </div>
 
-    <div class="status-text">
-      Status: <span class="belum-presensi">belum presensi</span>, mohon presensi sekarang
-    </div>
-  </ion-card>
-
-  <!-- ===============================
-       📊 Statistik Bulanan
-  =============================== -->
+  <!-- 📊 Statistik -->
   <ion-card class="statistik-card">
     <h3>Statistik Bulanan</h3>
-
-    <div class="stat-row">
-      <div class="top-info">
-        <span class="label">Hadir</span>
-        <span class="count">20 hari</span>
+    <div class="stat-row" *ngFor="let stat of [
+      { label: 'Hadir', count: '20 hari', class: 'hadir', width: '80%' },
+      { label: 'Terlambat', count: '5 hari', class: 'terlambat', width: '25%' },
+      { label: 'Cuti', count: '2 hari', class: 'cuti', width: '10%' },
+      { label: 'Alfa', count: '1 hari', class: 'alfa', width: '5%' }
+    ]">
+      <div class="stat-top">
+        <span>{{ stat.label }}</span>
+        <span>{{ stat.count }}</span>
       </div>
-      <div class="bar-wrapper">
-        <div class="bar hadir" style="width: 80%;"></div>
-      </div>
-    </div>
-
-    <div class="stat-row">
-      <div class="top-info">
-        <span class="label">Terlambat</span>
-        <span class="count">5 hari</span>
-      </div>
-      <div class="bar-wrapper">
-        <div class="bar terlambat" style="width: 25%;"></div>
-      </div>
-    </div>
-
-    <div class="stat-row">
-      <div class="top-info">
-        <span class="label">Cuti</span>
-        <span class="count">2 hari</span>
-      </div>
-      <div class="bar-wrapper">
-        <div class="bar cuti" style="width: 10%;"></div>
-      </div>
-    </div>
-
-    <div class="stat-row">
-      <div class="top-info">
-        <span class="label">Alfa</span>
-        <span class="count">1 hari</span>
-      </div>
-      <div class="bar-wrapper">
-        <div class="bar alfa" style="width: 5%;"></div>
+      <div class="bar-bg">
+        <div class="bar {{ stat.class }}" [style.width]="stat.width"></div>
       </div>
     </div>
   </ion-card>
 
 </ion-content>
+
+
+
+
+
+  <!-- <img
+    [src]="userPhotoUrl"
+    alt="Foto Profil"
+    class="profile-photo"
+  /> -->

@@ -1,53 +1,65 @@
 /* ===============================
-🌿 Profil Page Styling (Responsif)
+🌿 PROFIL PAGE (PERBAIKAN AKHIR)
 =============================== */
+
 ion-content.profil-content {
-  --background: #f5f5f5;
+  --background: #f6f6f6;
   position: relative;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-bottom: 120px;
 }
 
-/* Header toolbar */
-.profile-toolbar {
-  --background: #2e9b3a;
-  --color: #ffffff;
-}
-
-.profile-title {
-  color: #ffffff;
-  text-align: center;
-  font-weight: 600;
-  margin-right: 45px;
-  font-size: clamp(16px, 2vw, 22px);
-}
-
-/* Header abu */
+/* ===============================
+🌿 HEADER HIJAU LENGKUNG
+=============================== */
 .profile-header {
-  background: #a6a8a6;
+  background: #12a84f;
   width: 100%;
-  height: 160px;
-  position: relative;
+  height: 420px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  z-index: 1;
 }
 
-/* Foto profil */
+/* ===============================
+🌿 TEKS PROFIL SAYA
+=============================== */
+.profile-title {
+  font-weight: 800;
+  font-size: 26px;
+  text-align: center;
+  color: #ffffff;
+  margin-top: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ===============================
+🌿 FOTO PROFIL
+=============================== */
 .profile-photo-wrapper {
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   overflow: hidden;
-  border: 5px solid #fff;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  position: absolute;
-  top: 100px;
+  border: 5px solid #ffffff;
+  background: #ffffff;
+  position: relative;
+  z-index: 10;
+  margin-top: 150px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
-  background: #fff;
-  cursor: pointer;
-  pointer-events: auto;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  transition: transform 0.3s ease;
+}
+
+.profile-photo-wrapper:hover {
+  transform: translateX(-50%) scale(1.03);
 }
 
 .profile-img {
@@ -56,72 +68,177 @@ ion-content.profil-content {
   object-fit: cover;
 }
 
-/* Wrapper konten profil */
-.profile-wrapper {
-  background: #ffffff;
-  width: 100%;
-  max-width: none;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-top: -15px;
-  margin-bottom: -25px;
-  padding: 80px 22px 30px;
-  position: relative;
-  z-index: 5;
-  min-height: calc(100vh - 150px);
-  transition: all 0.3s ease;
-}
-
-.custom-tab-bar {
+/* ===============================
+🌿 IDENTITAS PROFIL
+=============================== */
+.profile-identity {
+  text-align: center;
+  margin-top: 18px;
   z-index: 10;
   position: relative;
 }
 
-/* Nama user */
 .profile-name {
-  font-size: clamp(18px, 2.5vw, 22px);
-  font-weight: 600;
-  color: #222;
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-/* Info card */
-.info-card {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-/* Info row */
-.info-row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.label {
-  font-weight: 600;
-  color: #000;
-  font-size: clamp(13px, 1.5vw, 15px);
+  font-weight: 700;
+  font-size: 22px;
+  color: #ffffff;
   margin-bottom: 4px;
 }
 
-.value,
-.status-active {
-  font-size: clamp(13px, 1.5vw, 15px);
-  color: #555;
+.profile-position {
+  font-size: 15px;
+  color: #e8e8e8;
+  margin-bottom: 10px;
 }
 
 /* ===============================
-🌿 Modal Zoom Gambar Responsif
+🌿 STATUS BADGE (AKTIF)
 =============================== */
-.image-modal::part(backdrop) {
-  background: rgba(0, 0, 0, 0.8) !important;
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e6f9ec;
+  color: #12a84f;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 50px;
+  box-shadow: 0 3px 8px rgba(18, 168, 79, 0.2);
 }
 
+.status-badge .dot {
+  font-size: 10px;
+  margin-right: 8px;
+}
+
+/* ===============================
+🌿 SECTION INFORMASI PERSONAL
+=============================== */
+.profile-section {
+  width: 90%;
+  max-width: 450px;
+  margin-top: 36px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 26px 22px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+  z-index: 5;
+  margin-left: auto;
+  margin-right: auto;
+
+}
+
+/* ===============================
+🌿 CARD INFORMASI — SAMA DENGAN FIGMA
+=============================== */
+.info-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid #e7e7e7;
+  background: #ffffff;
+  margin-bottom: 14px;
+  transition: 0.2s ease;
+}
+
+.info-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.info-icon-box {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f5f7;
+  border-radius: 14px;
+}
+
+.info-icon {
+  font-size: 22px;
+  color: #1e1e1e !important;
+}
+
+.info-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 13px;
+  color: #7c7c7c;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e1e1e;
+  margin-top: 2px;
+}
+
+/* ===============================
+🌿 LOGOUT BUTTON
+=============================== */
+.logout-btn {
+  margin: 28px auto 100px;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 14px;
+  font-weight: 600;
+  --border-color: var(--ion-color-danger);
+  --color: var(--ion-color-danger);
+  --border-width: 2px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 0, 0, 0.06);
+}
+
+/* ===============================
+🌿 FOOTER NAVIGASI
+=============================== */
+.bottom-footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.footer-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  font-size: 26px;
+  color: #999;
+  transition: 0.2s;
+}
+
+.nav-btn.active,
+.nav-btn:hover {
+  color: #12a84f;
+  transform: scale(1.15);
+}
+
+/* ===============================
+🌿 MODAL ZOOM (ANDROID TETAP — DESKTOP DIPERBAIKI)
+=============================== */
+
+/* global */
 .image-modal::part(content),
 .image-modal::part(wrapper) {
   background: transparent !important;
@@ -131,218 +248,83 @@ ion-content.profil-content {
 .image-modal ion-content {
   --background: transparent !important;
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
+  justify-content: center;
 }
 
+/* ✅ DEFAULT (Android) — tetap seperti semula */
 .zoom-img.circle {
+  display: block;
+  margin: 220px auto 0 auto;
+  width: 65vw;
+  height: 65vw;
+  max-width: 380px;
+  max-height: 380px;
   border-radius: 50%;
   object-fit: cover;
-  border: 5px solid white;
+  border: 5px solid #fff;
   box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
   animation: fadeIn 0.3s ease;
   transition: transform 0.3s ease;
 }
 
 /* ===============================
-🌿 Platform-Specific Adjustments
+🌿 PERBAIKAN RESPONSIVE DESKTOP
 =============================== */
 
-/* 📱 Android Style */
-.platform-android .profile-wrapper {
-  padding: 65px 18px 35px;
-  border-radius: 16px;
-  font-size: 14px;
-}
-.platform-android .profile-photo-wrapper {
-  width: 95px;
-  height: 95px;
-  top: 90px;
-}
-.platform-android .profile-header {
-  height: 140px;
-}
-
-/* 🍎 iOS Style */
-.platform-ios .profile-wrapper {
-  padding: 75px 24px 40px;
-  border-radius: 18px;
-}
-.platform-ios .profile-photo-wrapper {
-  width: 110px;
-  height: 110px;
-  top: 95px;
-}
-
-/* 💻 Web / Desktop Style (✅ dibenarkan agar tetap responsif) */
-body:not(.platform-android):not(.platform-ios) .profile-wrapper {
-  width: 70%;
-  max-width: 800px;
-  margin: -20px auto -30px; /* ✅ tetap overlap bawah */
-  padding: 100px 40px 60px;
-  border-radius: 25px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-  min-height: calc(100vh - 180px);
-}
-
-body:not(.platform-android):not(.platform-ios) .profile-photo-wrapper {
-  width: 140px;
-  height: 140px;
-  top: 110px;
-}
-
-body:not(.platform-android):not(.platform-ios) .profile-header {
-  height: 200px;
-}
-
-/* ===============================
-🌿 Responsive Breakpoints
-=============================== */
-.zoom-img.circle {
-  display: block;
-  margin: 240px auto 0 auto; /* tetap untuk Android */
-  width: 65vw;
-  height: 65vw;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-/* 🔧 Tambahan: untuk tampilan web (layar lebar) */
-@media (min-width: 768px) {
-  .zoom-img.circle {
-    width: 200px;       /* ukuran lebih proporsional di web */
-    height: 200px;
-    margin: 120px auto 0 auto; /* tengah + atur jarak dari atas */
+/* Card section — buat lebih lebar di layar besar */
+@media (min-width: 900px) {
+  .profile-section {
+    width: 70%;           /* sebelumnya 55% */
+    max-width: 700px;     /* biar tidak terlalu sempit */
+    margin-top: 60px;
   }
 }
 
-
-  .profile-photo-wrapper {
-    width: 90px;
-    height: 90px;
-    top: 90px;
+/* Tambahkan batas maksimum dan center */
+@media (min-width: 1200px) {
+  ion-content.profil-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
-  .profile-wrapper {
-    padding: 70px 15px 25px;
+  .profile-section {
+    width: 65%;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  .profile-header {
-    height: 130px;
-  }
-
-@media (min-width: 601px) and (max-width: 1024px) {
-  .zoom-img.circle {
-    width: 40vw;
-    height: 40vw;
-  }
-
-  .profile-photo-wrapper {
-    width: 110px;
-    height: 110px;
-    top: 95px;
-  }
-
-  .profile-wrapper {
-    width: 80%;
-    padding: 85px 28px 40px;
+  
+  /* Logout button ikut menyesuaikan */
+  .logout-btn {
+    width: 65%;
+    max-width: 720px;
+    margin: 28px auto 100px;
   }
 }
 
-@media (min-width: 1025px) {
-  .zoom-img.circle {
-    width: 20vw;
-    height: 20vw;
-    max-width: 300px;
-    max-height: 300px;
-  }
-}
-
-/* Animasi muncul */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.zoom-img.circle:active {
-  transform: scale(0.95);
-}
-
-/* ===============================
-🌿 Bottom Navigation Styling
-=============================== */
-.custom-tab-bar {
+ion-alert {
   --background: #ffffff;
-  --color: #a0a0a0;
-  --color-selected: #2e9b3a;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-  border-top: 1px solid #e5e5e5;
-  height: 65px;
+  --border-radius: 16px;
+  --message-color: #000;
+  --header-color: #000;
+  --width: 320px;
 }
 
-.custom-tab-bar ion-tab-button {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  font-size: 12px;
+.alert-button-cancel {
+  color: #ffffff !important;
+  background-color: #e53935 !important;
+  border-radius: 8px;
+  padding: 6px 14px;
   font-weight: 500;
-  color: #a0a0a0;
-  transition: color 0.3s ease;
 }
 
-.custom-tab-bar ion-tab-button ion-icon {
-  font-size: 26px;
-  margin-bottom: 2px;
-}
-
-.custom-tab-bar ion-tab-button.tab-active,
-.custom-tab-bar ion-tab-button.tab-active ion-icon {
-  color: #2e9b3a !important;
-}
-
-.custom-tab-bar ion-tab-button:hover {
-  color: #2e9b3a;
-}
-
-/* Footer nav */
-.bottom-footer {
-  --background: #ffffff;
-  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.08);
-}
-
-.footer-nav {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 12px 8px;
-}
-
-.nav-btn {
-  background: transparent;
-  border: none;
-  outline: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 52px;
-  width: 64px;
-  color: #a0a0a0;
-  font-size: 12px;
-}
-
-.nav-btn ion-icon {
-  font-size: 28px;
-}
-
-.nav-btn.active {
-  color: #000000;
+.alert-button-confirm {
+  color: #ffffff !important;
+  background-color: #2ecc71 !important;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 500;
 }

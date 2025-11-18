@@ -1,0 +1,19 @@
+/**
+ * 🕒 Attendance Model
+ * Representasi data presensi (check-in/out) karyawan.
+ * Kompatibel dengan struktur API Laravel dan frontend Angular/Ionic.
+ */
+
+export interface Attendance {
+  id?: number;
+  user_id?: number;
+  check_in?: string;
+  check_out?: string;
+  latitude?: number;
+  longitude?: number;
+  status?: string;
+  month?: number;
+  year?: number;
+  created_at?: string;
+  updated_at?: string;
+}
