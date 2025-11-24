@@ -149,26 +149,27 @@ ion-content {
     padding-top: 60px;
   }
 
-  .login-card {
-    width: 700px; /* lebar di desktop */
-    padding: 50px 80px;
-    border-radius: 25px;
-    background: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  }
+.login-card {
+  border-radius: 30px;
+  background: #ffffff;
+  padding: 28px 26px;
+  width: 360px;
+}
 
-  .login-card h2 {
-    font-size: 26px;
-    margin-bottom: 25px;
-  }
+.logo-container .logo {
+  width: 150px;
+  height: 150px;
+}
 
-  .input-group input {
-    font-size: 16px;
-    padding: 12px 45px;
-  }
+.input-group input {
+  height: 50px;
+  border-radius: 16px;
+}
 
-  .login-btn {
-    font-size: 18px;
-    padding: 14px;
+.login-btn {
+  height: 54px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 700;
   }
 }

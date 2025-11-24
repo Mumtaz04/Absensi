@@ -1,4 +1,3 @@
-
 .beranda-content {
   --background: #f5f6fa;
   padding-bottom: 20px;
@@ -263,6 +262,11 @@
 
 .presensi-message.telat {
   color: #f0ad4e; /* Kuning */
+}
+
+::ng-deep .presensi-message.selesai {
+  color: #28a745 !important; /* hijau */
+  font-weight: 600;
 }
 
 /* Kotak jam */

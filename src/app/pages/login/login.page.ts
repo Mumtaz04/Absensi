@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, NavController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
@@ -22,8 +22,13 @@ export class LoginPage {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private navCtrl: NavController   // <-- ✓ ini wajib
   ) {}
+
+  goToForgotPassword() {
+    this.navCtrl.navigateForward('/forgot-password'); // <-- sudah valid
+  }
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
@@ -34,14 +39,14 @@ export class LoginPage {
     this.authService.login(this.email, this.password).subscribe({
       next: async (res: any) => {
         this.loading = false;
-        // pastikan token benar
+
         const token = res.token ?? res.access_token ?? '';
         localStorage.setItem('token', token);
 
         const toast = await this.toastCtrl.create({
           message: 'Login berhasil!',
           duration: 1500,
-          color: 'success'
+          color: 'success',
         });
         toast.present();
 
@@ -51,13 +56,14 @@ export class LoginPage {
         this.loading = false;
         console.error('Login gagal:', err);
         this.errorMessage = 'Email atau password salah.';
+
         const toast = await this.toastCtrl.create({
           message: this.errorMessage,
           duration: 2000,
-          color: 'danger'
+          color: 'danger',
         });
         toast.present();
-      }
+      },
     });
   }
 }

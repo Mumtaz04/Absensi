@@ -26,6 +26,12 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'riwayat-presensi',
+        loadComponent: () =>
+          import('../pages/riwayat-presensi/riwayat-presensi.page')
+            .then(m => m.RiwayatPresensiPage)
+      },
+      {
         path: 'akun',
         // ⚙️ jika profil kamu ada di folder pages/profil/
         loadComponent: () =>

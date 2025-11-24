@@ -94,7 +94,8 @@
       [ngClass]="{
         'warning': statusPresensi.status === 'belum',
         'tepat': statusPresensi.status === 'hadir_tepat',
-        'telat': statusPresensi.status === 'hadir_telat'
+        'telat': statusPresensi.status === 'hadir_telat',
+        'selesai': statusPresensi.status === 'selesai'
       }">
       {{ statusPresensi.pesan }}
     </p>

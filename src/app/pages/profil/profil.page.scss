@@ -46,7 +46,7 @@ ion-content.profil-content {
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible; /* supaya tombol edit keluar dari batas */
   border: 5px solid #ffffff;
   background: #ffffff;
   position: relative;
@@ -56,6 +56,9 @@ ion-content.profil-content {
   transform: translateX(-50%);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
   transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profile-photo-wrapper:hover {
@@ -66,6 +69,39 @@ ion-content.profil-content {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* ===============================
+🌿 FOTO EDIT OVERLAY (Figma-like)
+=============================== */
+.photo-edit-btn {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #2d8cff; /* biru mirip figma */
+  box-shadow: 0 8px 18px rgba(45, 140, 255, 0.3);
+  z-index: 20;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.photo-edit-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.photo-edit-icon {
+  color: #fff;
+  font-size: 18px;
+  margin: 0;
 }
 
 /* ===============================
@@ -89,6 +125,25 @@ ion-content.profil-content {
   font-size: 15px;
   color: #e8e8e8;
   margin-bottom: 10px;
+}
+/* ===============================
+🌿 PROFIL (EDIT)
+=============================== */
+.edit-btn {
+  float: right;
+  color: #12a84f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edit-input {
+  font-size: 15px;
+  font-weight: 600;
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  border-radius: 10px;
+  margin-top: 4px;
+  width: 100%;
 }
 
 /* ===============================
@@ -126,7 +181,67 @@ ion-content.profil-content {
   z-index: 5;
   margin-left: auto;
   margin-right: auto;
+}
 
+/* ===============================
+🌿 ICON EDIT PERSIS FIGMA
+=============================== */
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e1e1e;
+    margin-bottom: 18px;
+    position: relative;
+}
+
+.edit-btn {
+    position: absolute;
+    right: 0;
+    top: 2px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.edit-icon {
+    font-size: 25px;
+    color: #787878;
+    font-weight: 700;
+}
+
+.edit-text {
+    color: #12a84f;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+/* ===============================
+🌿 EDIT BUTTON 
+=============================== */
+.edit-btn {
+  background: transparent;
+  border: none;
+  top: -5px;
+  right: 5px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s ease, color 0.2s ease;
+
+  font-size: 25px;
+  color: #4a4a4a;
+}
+
+/* Saat ditekan → gelap */
+.edit-btn:active {
+  background: #e0e0e0;
+}
+
+.edit-btn:active ion-icon {
+  color: #2c2c2c;
 }
 
 /* ===============================
@@ -272,16 +387,14 @@ ion-content.profil-content {
 🌿 PERBAIKAN RESPONSIVE DESKTOP
 =============================== */
 
-/* Card section — buat lebih lebar di layar besar */
 @media (min-width: 900px) {
   .profile-section {
-    width: 70%;           /* sebelumnya 55% */
-    max-width: 700px;     /* biar tidak terlalu sempit */
+    width: 70%;
+    max-width: 700px;
     margin-top: 60px;
   }
 }
 
-/* Tambahkan batas maksimum dan center */
 @media (min-width: 1200px) {
   ion-content.profil-content {
     display: flex;
@@ -296,8 +409,6 @@ ion-content.profil-content {
     margin-right: auto;
   }
 
-  
-  /* Logout button ikut menyesuaikan */
   .logout-btn {
     width: 65%;
     max-width: 720px;

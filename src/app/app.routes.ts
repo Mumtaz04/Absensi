@@ -51,5 +51,9 @@ export const routes: Routes = [
         (m) => m.RiwayatPresensiPage
       ),
   },
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('./pages/forgot-password/forgot-password.page').then( m => m.ForgotPasswordPage)
+  },
   // ⚠️ Tidak perlu ulang route "profil" di sini
 ];

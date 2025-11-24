@@ -6,15 +6,21 @@
 
 <ion-content class="profil-content">
 
-  <!-- Header Hijau Lengkung -->
   <div class="profile-header"></div>
 
-  <!-- Foto Profil -->
-  <div class="profile-photo-wrapper" (click)="openImage()">
+  <!-- PROFILE PHOTO WRAPPER:
+       klik pada wrapper → buka zoom (openImage)
+       klik pada tombol edit (openPhotoChooser) → buka file picker (stopPropagation dipakai)
+  -->
+  <div class="profile-photo-wrapper" (click)="openImage()" role="button" aria-label="Lihat foto profil">
     <img [src]="profileImage" alt="Profile" class="profile-img" />
+
+    <!-- tombol edit overlay (Figma style) -->
+    <button class="photo-edit-btn" (click)="openPhotoChooser($event)" title="Ubah Foto Profil" aria-label="Ubah Foto Profil">
+      <ion-icon name="pencil" class="photo-edit-icon"></ion-icon>
+    </button>
   </div>
 
-  <!-- Identitas -->
   <div class="profile-identity">
     <h2 class="profile-name">{{ user?.name || 'Karina' }}</h2>
     <p class="profile-position">{{ user?.position || 'Karyawan' }}</p>
@@ -24,11 +30,24 @@
     </div>
   </div>
 
-  <!-- Informasi Personal -->
   <div class="profile-section">
-    <h3 class="section-title">Informasi Personal</h3>
+  <h3 class="section-title">
+    Informasi Personal
 
-    <div class="info-card">
+    <button class="edit-btn" [class.active]="editMode" (click)="toggleEdit()">
+      <ion-icon 
+        *ngIf="!editMode"
+        class="edit-icon"
+        name="pencil-outline">
+      </ion-icon>
+
+      <span class="edit-text">
+        {{ editMode ? 'SELESAI' : '' }}
+      </span>
+    </button>
+  </h3>
+
+    <div class="info-card" [class.disabled]="editMode">
       <div class="info-icon-box">
         <ion-icon name="mail-outline" class="info-icon"></ion-icon>
       </div>
@@ -54,7 +73,17 @@
       </div>
       <div class="info-detail">
         <span class="info-label">Nomor Telepon</span>
-        <span class="info-value">{{ user?.phone || '-' }}</span>
+
+        <ion-input
+          *ngIf="editMode"
+          [(ngModel)]="editPhone"
+          type="tel"
+          class="edit-input">
+        </ion-input>
+
+        <span class="info-value" *ngIf="!editMode">
+          {{ user?.phone || '-' }}
+        </span>
       </div>
     </div>
 
@@ -74,27 +103,36 @@
       </div>
       <div class="info-detail">
         <span class="info-label">Alamat</span>
-        <span class="info-value">{{ user?.address || 'Belum diisi' }}</span>
+
+        <ion-textarea
+          *ngIf="editMode"
+          [(ngModel)]="editAddress"
+          auto-grow="true"
+          class="edit-input">
+        </ion-textarea>
+
+        <span class="info-value" *ngIf="!editMode">
+          {{ user?.address || 'Belum diisi' }}
+        </span>
       </div>
     </div>
-  </div>
 
-  <!-- Tombol Logout -->
+  </div> 
+  <!-- ✔️ EDIT PROFIL-->
+
   <ion-button expand="block" fill="outline" color="danger" class="logout-btn" (click)="logout()">
     <ion-icon slot="start" name="log-out-outline"></ion-icon>
     Logout
   </ion-button>
 
-  <!-- Modal Foto -->
   <ion-modal [isOpen]="showImage" (didDismiss)="closeImage()" cssClass="image-modal">
     <ng-template>
-      <ion-content class="modal-content" (click)="closeImage()">
+      <div class="modal-content" (click)="closeImage()">
         <img [src]="profileImage" alt="Zoom Profile" class="zoom-img circle" />
-      </ion-content>
+      </div>
     </ng-template>
   </ion-modal>
 
-  <!-- Footer Navigasi -->
   <ion-footer class="bottom-footer" translucent>
     <ion-toolbar>
       <div class="footer-nav">

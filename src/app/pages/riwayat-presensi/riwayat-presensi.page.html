@@ -1,12 +1,7 @@
 <ion-header>
   <ion-toolbar color="success">
     <ion-buttons slot="start">
-      <ion-back-button
-        defaultHref="/tabs/beranda"
-        text=""
-        icon="arrow-back-outline"
-        class="custom-back-btn"
-      ></ion-back-button>
+      <ion-back-button defaultHref="/tabs/presensi" color="light"></ion-back-button>
     </ion-buttons>
     <ion-title>Riwayat Presensi</ion-title>
   </ion-toolbar>
@@ -17,11 +12,11 @@
   <!-- Header Bulan -->
   <div class="month-header">
     <ion-icon name="chevron-back-outline" class="nav-icon"></ion-icon>
-    <h2>Oktober 2025</h2>
+    <h2>{{ monthLabel }}</h2>
     <ion-icon name="chevron-forward-outline" class="nav-icon"></ion-icon>
   </div>
 
-  <!-- Keterangan Warna -->
+  <!-- Keterangan -->
   <div class="legend">
     <div class="item"><span class="dot terlambat"></span> Terlambat</div>
     <div class="item"><span class="dot cuti"></span> Izin/Cuti</div>
@@ -29,46 +24,61 @@
     <div class="item"><span class="dot libur"></span> Libur</div>
   </div>
 
-  <!-- Tabel Riwayat -->
+  <!-- CARD -->
   <ion-card class="riwayat-card">
-    <table class="riwayat-table">
-      <thead>
-        <tr>
-          <th>Tanggal</th>
-          <th>Check-In</th>
-          <th>Check-Out</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>09:00</td><td>16:00</td></tr>
-        <tr><td>2</td><td>09:00</td><td>16:00</td></tr>
-        <tr class="terlambat"><td>3</td><td>09:30</td><td>16:30</td></tr>
-        <tr class="libur"><td>4</td><td colspan="2">Libur</td></tr>
-        <tr class="libur"><td>5</td><td colspan="2">Libur</td></tr>
-        <tr><td>6</td><td>09:00</td><td>16:00</td></tr>
-        <tr class="cuti"><td>8</td><td colspan="2">Cuti</td></tr>
-        <tr class="cuti"><td>9</td><td colspan="2">Cuti</td></tr>
-        <tr class="cuti"><td>10</td><td colspan="2">Cuti</td></tr>
-        <tr class="libur"><td>11</td><td colspan="2">Libur</td></tr>
-        <tr><td>13</td><td>09:00</td><td>16:00</td></tr>
-        <tr class="terlambat"><td>14</td><td>09:30</td><td>16:30</td></tr>
-        <tr class="cuti"><td>15</td><td colspan="2">Cuti</td></tr>
-        <tr class="cuti"><td>16</td><td colspan="2">Cuti</td></tr>
-        <tr class="libur"><td>18</td><td colspan="2">Libur</td></tr>
-        <tr><td>20</td><td>09:30</td><td>16:30</td></tr>
-        <tr><td>21</td><td>09:00</td><td>16:00</td></tr>
-        <tr><td>22</td><td>09:00</td><td>16:00</td></tr>
-        <tr><td>23</td><td>09:30</td><td>16:30</td></tr>
-        <tr><td>24</td><td>09:00</td><td>16:00</td></tr>
-        <tr class="libur"><td>25</td><td colspan="2">Libur</td></tr>
-        <tr class="libur"><td>26</td><td colspan="2">Libur</td></tr>
-        <tr><td>27</td><td>09:00</td><td>16:00</td></tr>
-        <tr class="terlambat"><td>28</td><td>09:30</td><td>16:30</td></tr>
-        <tr><td>29</td><td>09:00</td><td>16:00</td></tr>
-        <tr class="alfa"><td>30</td><td colspan="2">Alfa</td></tr>
-        <tr><td>31</td><td>09:00</td><td>16:00</td></tr>
-      </tbody>
-    </table>
+
+    <!-- HEADER TABLE -->
+    <div class="table-header">
+      <div class="col tanggal">Tanggal</div>
+      <div class="col">Check-In</div>
+      <div class="col">Check-Out</div>
+    </div>
+
+    <!-- BODY -->
+    <div class="table-body">
+
+      <!-- dynamic rows -->
+      <ng-container *ngIf="calendar && calendar.length; else fallbackStatic">
+        <div *ngFor="let day of calendar" class="table-row"
+             [ngClass]="{
+               'terlambat': day.status === 'Terlambat' || day.status === 'Terlambat',
+               'cuti': day.status && day.status.toLowerCase().includes('cuti') || (day.status && day.status.toLowerCase() === 'izin'),
+               'alfa': day.status === 'Alfa' || day.status === 'alfa',
+               'libur': day.status === 'Libur' || day.status === 'libur',
+               'merged': (day.status && (day.status === 'Libur' || (day.status && day.status.toLowerCase().includes('cuti'))))
+             }">
+
+          <!-- If merged (Libur/Cuti) we still render 3 cols but with text in middle columns -->
+          <div class="col tanggal">{{ day.day }}</div>
+
+          <!-- merged libur/cuti: show label + description -->
+          <ng-container *ngIf="(day.status === 'Libur') || (day.status && day.status.toLowerCase().includes('cuti')); else normalCols">
+            <div class="col merge-left">{{ day.status === 'Libur' ? 'Libur' : (day.status || 'Cuti')}}</div>
+            <div class="col merge-right">{{ day.description || (day.status === 'Libur' ? 'Akhir pekan' : '-') }}</div>
+          </ng-container>
+
+          <!-- normal: two time columns -->
+          <ng-template #normalCols>
+            <div class="col">{{ fmtTime(day.check_in) }}</div>
+            <div class="col">{{ fmtTime(day.check_out) }}</div>
+          </ng-template>
+
+        </div>
+      </ng-container>
+
+      <!-- fallback: jika backend gagal, tampilkan placeholder (sama seperti static you had) -->
+      <ng-template #fallbackStatic>
+        <!-- You kept your original static rows if needed as fallback -->
+        <div class="table-row">
+          <div class="col tanggal">1</div>
+          <div class="col">09:00</div>
+          <div class="col">16:00</div>
+        </div>
+        <!-- (other static rows omitted for brevity) -->
+      </ng-template>
+
+    </div>
+
   </ion-card>
 
 </ion-content>

@@ -5,49 +5,23 @@ ion-header ion-toolbar {
   align-items: center;
   position: relative;
   --background: var(--ion-color-success);
-  --color: #ffffff; /* pastikan semua teks/ikon default di toolbar putih */
+  --color: #ffffff;
 }
 
-/* Judul tengah */
 ion-header ion-title {
   color: #fff;
   font-weight: 600;
   font-size: 18px;
   position: absolute;
-  top: 30%;
-  left: 51%;
+  left: 50%;
+  bottom: 30%;
   transform: translateX(-50%);
   text-align: center;
 }
 
-/* Tombol di kiri (back) */
 ion-header ion-buttons {
   position: absolute;
   left: 8px;
-}
-
-/* ====== PERBAIKAN PENTING UNTUK ARROW BACK TETAP PUTIH ====== */
-ion-back-button,
-ion-back-button::part(icon),
-ion-back-button::part(native),
-ion-back-button.button-native {
-  --color: #ffffff !important;
-  color: #ffffff !important;
-  fill: #ffffff !important;
-  stroke: #ffffff !important;
-}
-
-/* Saat ditekan, difokuskan, atau di mode Android/iOS */
-ion-back-button:active,
-ion-back-button:focus,
-ion-back-button.activated,
-html.md ion-back-button::part(icon),
-html.ios ion-back-button::part(icon),
-html.md ion-back-button.activated::part(icon),
-html.ios ion-back-button.activated::part(icon) {
-  color: #ffffff !important;
-  fill: #ffffff !important;
-  stroke: #ffffff !important;
 }
 
 /* ===== Konten ===== */
@@ -62,30 +36,29 @@ html.ios ion-back-button.activated::part(icon) {
   justify-content: center;
   align-items: center;
   gap: 14px;
-  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .month-header h2 {
   font-weight: 700;
   font-size: 17px;
-  color: #000;
   margin: 0;
+  color: #000;
 }
 
 .nav-icon {
-  font-size: 20px;
-  color: #2eb85c; /* hijau tetap */
+  font-size: 22px;
+  color: #2eb85c;
 }
 
-/* ===== Keterangan Warna ===== */
+/* ===== Legend ===== */
 .legend {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 14px;
-  margin: 18px 0;
+  gap: 12px;
+  margin-bottom: 15px;
   font-size: 13px;
-  color: #333;
 }
 
 .legend .item {
@@ -95,62 +68,91 @@ html.ios ion-back-button.activated::part(icon) {
 }
 
 .dot {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
 }
 
-.dot.hadir { background: #fff; border: 1px solid #d0d0d0; }
-.dot.terlambat { background: #fddf6d; border: 1px solid #d9b900; }
-.dot.cuti { background: #f5a07a; border: 1px solid #d47952; }
-.dot.alfa { background: #bcbcbc; border: 1px solid #888; }
-.dot.libur { background: #c3c5cc; border: 1px solid #92949c; }
+.dot.terlambat { background: #ffe89a; border: 1px solid #d7b300; }
+.dot.cuti      { background: #ffc7a4; border: 1px solid #d1835c; }
+.dot.alfa      { background: #707070; border: 1px solid #999; }
+.dot.libur     { background: #8c8c8c; border: 1px solid #6f6f6f; }
 
-/* ===== Tabel ===== */
+/* ===== CARD ===== */
 .riwayat-card {
-  background: #fff;
+  background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  padding: 0;
   overflow: hidden;
-  margin-bottom: 40px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
 }
 
-.riwayat-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-}
+/* ===== HEADER TABLE (FLEX) ===== */
+  /* ===== GARIS / BORDER KOLOM ===== */
+  .table-header, 
+  .table-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 
-.riwayat-table th {
-  background: #2ea4d3;
-  color: #000;
-  font-size: 14px;
-  font-weight: 700;
-  padding: 10px;
-  border-bottom: 1px solid #e0e0e0;
-}
+  /* Header table */
+  .table-header .col {
+    background: #d3e4f3;
+    font-weight: 600;
+    padding: 12px;
+    font-size: 14px;
+    border-bottom: 1px solid #c5d3df;
+  }
 
-.riwayat-table td {
-  padding: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #000;
-}
+  /* Body row */
+  .table-row .col {
+    padding: 12px;
+    font-size: 14px;
+    border-bottom: 1px solid #e2e2e2;
+    border-right: 1px solid #e2e2e2;
+  }
 
-/* ===== Warna baris sesuai status ===== */
-tr.terlambat { background: #fff3c4; }
-tr.cuti { background: #ffd6b5; }
-tr.alfa { background: #e0e0e0; }
-tr.libur { background: #d8dbe0; }
+  /* Hilangkan border-right dari kolom terakhir */
+  .table-row .col:last-child,
+  .table-header .col:last-child {
+    border-right: none;
+  }
 
-tr:nth-child(even) {
-  border-bottom: 1px solid #eaeaea;
-}
+  /* Perbaiki tanggal agar rata tengah */
+  .table-row .tanggal,
+  .table-header .tanggal {
+    text-align: center;
+  }
 
-/* ===== Responsif ===== */
+  /* STATUS BACKGROUND OVERRIDE */
+  .table-row.terlambat .col {
+    background: #fff3c4 !important;
+  }
+
+  .table-row.cuti .col {
+    background: #FF8A66 !important;
+  }
+
+  .table-row.alfa .col {
+    background: #afafaf !important;
+  }
+
+  .table-row.libur .col {
+    background: #737373 !important;
+    color: #fff !important;
+  }
+
+  /* Merge cells (Libur / Cuti) */
+  .table-row.merged .merge-left,
+  .table-row.merged .merge-right {
+    text-align: center;
+    border-right: none !important;
+  }
+
+/* ===== Desktop center ===== */
 @media (min-width: 768px) {
   .riwayat-card {
-    max-width: 450px;
+    max-width: 420px;
     margin: 0 auto;
   }
 }

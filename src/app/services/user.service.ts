@@ -12,26 +12,35 @@ export class UserService {
   constructor(private http: HttpClient) {}
 
   // ======================
-  // CHECK IN
+  // CHECK IN / CHECK OUT
   // ======================
-checkIn(data: any) {
-  const token = localStorage.getItem('token');
-  const headers = new HttpHeaders({
-    Authorization: `Bearer ${token}`
-  });
+  checkIn(data: any) {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
 
-  return this.http.post(`${this.baseUrl}/employee/check-in`, data, { headers });
-}
+    return this.http.post(`${this.baseUrl}/employee/check-in`, data, { headers });
+  }
+
+  checkOut(data: any) {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+
+    return this.http.post(`${this.baseUrl}/employee/check-out`, data, { headers });
+  }
 
   // ======================
-  // CHECK OUT
+  // UPLOAD FOTO PROFIL
   // ======================
-checkOut(data: any) {
-  const token = localStorage.getItem('token');
-  const headers = new HttpHeaders({
-    Authorization: `Bearer ${token}`
-  });
-
-  return this.http.post(`${this.baseUrl}/employee/check-out`, data, { headers });
+  updateProfilePhoto(formData: FormData) {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+    // endpoint contoh: /user/photo  -> sesuaikan dengan backend Anda
+    return this.http.post<any>(`${this.baseUrl}/user/photo`, formData, { headers });
   }
 }

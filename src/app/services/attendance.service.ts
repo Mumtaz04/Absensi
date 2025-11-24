@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Attendance } from './attendance.model';
 import { Observable, of, throwError, Subject } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +26,7 @@ export class AttendanceService {
     const token = localStorage.getItem('token') ?? '';
     return new HttpHeaders({
       Authorization: `Bearer ${token}`,
+      'Accept': 'application/json'
     });
   }
 
@@ -39,7 +40,7 @@ export class AttendanceService {
     ].join('-');
   }
 
-  /** 📅 Riwayat Presensi */
+  /** 📅 Riwayat Presensi (line-item) */
   getAttendanceHistory(month?: number, year?: number): Observable<Attendance[]> {
     const now = new Date();
     const m = month ?? now.getMonth() + 1;
@@ -48,9 +49,36 @@ export class AttendanceService {
     const url = `${this.baseUrl}/attendances/history?month=${m}&year=${y}`;
 
     return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
-      map((res) => Array.isArray(res?.data) ? res.data : []),
+      map((res) => {
+        // API kadang return { data: [...] } atau langsung array
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res?.data)) return res.data;
+        return [];
+      }),
       catchError((err) => {
         console.error('❌ getAttendanceHistory error:', err);
+        return of([]);
+      })
+    );
+  }
+
+  /** 📅 Calendar (per hari — lebih mudah render bulan) */
+  getAttendanceCalendar(month?: number, year?: number): Observable<any[]> {
+    const now = new Date();
+    const m = month ?? now.getMonth() + 1;
+    const y = year ?? now.getFullYear();
+
+    const url = `${this.baseUrl}/attendances/calendar?month=${m}&year=${y}`;
+
+    return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
+      map((res) => {
+        // backend mengembalikan array of day objects
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res?.data)) return res.data;
+        return [];
+      }),
+      catchError((err) => {
+        console.error('❌ getAttendanceCalendar error:', err);
         return of([]);
       })
     );
@@ -65,7 +93,8 @@ export class AttendanceService {
     const longitude = Number(record.longitude);
 
     const formData = new FormData();
-    formData.append('check_in', record.check_in ?? now.toISOString());
+    // HAPUS PENGIRIMAN check_in — backend sudah otomatis
+    // formData.append('check_in', record.check_in ?? now.toISOString());
     formData.append('latitude', isNaN(latitude) ? '0' : latitude.toString());
     formData.append('longitude', isNaN(longitude) ? '0' : longitude.toString());
     formData.append('status', record.status ?? 'Hadir');
@@ -75,6 +104,10 @@ export class AttendanceService {
     console.log('📤 Payload Check-In:', debugPayload);
 
     return this.http.post<any>(url, formData, { headers: this.getHeaders() }).pipe(
+      tap(() => {
+        // notify after success so UI lain bisa refresh
+        this.notifyPresensiChanged();
+      }),
       map((res) => res?.data ?? res),
       catchError((err) => {
         console.error('❌ createAttendance error:', err);
@@ -94,7 +127,8 @@ export class AttendanceService {
     const longitude = Number(payload.longitude);
 
     const formData = new FormData();
-    formData.append('check_out', payload.check_out ?? now.toISOString());
+    // HAPUS PENGIRIMAN check_out — backend sudah otomatis
+    // formData.append('check_out', payload.check_out ?? now.toISOString());
     formData.append('latitude', isNaN(latitude) ? '0' : latitude.toString());
     formData.append('longitude', isNaN(longitude) ? '0' : longitude.toString());
     formData.append('status', payload.status ?? 'Hadir');
@@ -104,10 +138,10 @@ export class AttendanceService {
     console.log('📤 Payload Check-Out:', debugPayload);
 
     return this.http.post<any>(url, formData, { headers: this.getHeaders() }).pipe(
-      map((res) => {
+      tap(() => {
         this.notifyPresensiChanged(); // 👉 real-time refresh
-        return res?.data ?? res;
       }),
+      map((res) => res?.data ?? res),
       catchError((err) => {
         console.error('❌ updateAttendance error:', err);
         return throwError(

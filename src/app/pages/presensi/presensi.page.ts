@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { Geolocation } from '@capacitor/geolocation';
 import { AttendanceService } from '../../services/attendance.service';
-import { firstValueFrom } from 'rxjs';
+import { NavController } from '@ionic/angular';
+import { firstValueFrom, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-presensi',
@@ -13,7 +14,13 @@ import { firstValueFrom } from 'rxjs';
   imports: [CommonModule, IonicModule],
 })
 export class PresensiPage implements OnInit, OnDestroy {
+  constructor(
+    private attendanceService: AttendanceService,
+    private navCtrl: NavController
+  ) {}
+
   isLoading = false;
+  isCheckoutDisabled = false;
   currentTime = '';
   currentDate = '';
   checkInTime: string | null = null;
@@ -22,15 +29,22 @@ export class PresensiPage implements OnInit, OnDestroy {
   canCheckIn = true;
   canCheckOut = false;
 
+  todayRecordId: number | null = null;
+
   private readonly OFFICE_LAT = -7.037943980089189;
   private readonly OFFICE_LON = 110.47993371532893;
 
+  private presensiSub?: Subscription;
   private unloadHandler = this.savePresensiData.bind(this);
 
-  constructor(private attendanceService: AttendanceService) {}
+  goToRiwayatPresensi() {
+    this.navCtrl.navigateForward('/riwayat-presensi');
+  }
+  goToPengajuanIzin() {
+    this.navCtrl.navigateForward('/pengajuan-izin');
+  }
 
   ngOnInit() {
-    this.getAccuratePosition();
     this.updateDateTime();
     setInterval(() => this.updateDateTime(), 1000);
 
@@ -40,11 +54,24 @@ export class PresensiPage implements OnInit, OnDestroy {
     this.syncButtonStates();
 
     window.addEventListener('beforeunload', this.unloadHandler);
+
     this.loadTodayAttendance();
+
+    this.presensiSub = this.attendanceService.presensiChanged$.subscribe(() => {
+      this.loadTodayAttendance();
+    });
+  }
+
+  ionViewWillEnter() {
+    this.updateDateTime();
+    this.restorePresensiData();
+    this.loadTodayAttendance();
+    this.syncButtonStates();
   }
 
   ngOnDestroy() {
     window.removeEventListener('beforeunload', this.unloadHandler);
+    this.presensiSub?.unsubscribe();
   }
 
   updateDateTime() {
@@ -66,6 +93,18 @@ export class PresensiPage implements OnInit, OnDestroy {
     });
   }
 
+  /** ====================================
+   * FIX: Format waktu tanpa ubah timezone
+   * ==================================== */
+  private formatTimeString(dateStr: string): string {
+    if (!dateStr) return '-- : --';
+
+    // Format backend: "2025-11-24 12:58:00"
+    const parts = dateStr.split(' ');
+    if (parts.length < 2) return '-- : --';
+    return parts[1].substring(0, 5); // jam:menit
+  }
+
   private restorePresensiData() {
     this.checkInTime = localStorage.getItem('checkInTime');
     this.checkOutTime = localStorage.getItem('checkOutTime');
@@ -84,9 +123,13 @@ export class PresensiPage implements OnInit, OnDestroy {
       localStorage.removeItem('checkInTime');
       localStorage.removeItem('checkOutTime');
       localStorage.setItem('presensiDate', today);
+      this.todayRecordId = null;
     }
   }
 
+  /** ================================================
+   * LOAD TODAY DATA (tanpa timezone conversion)
+   * ================================================ */
   private async loadTodayAttendance() {
     try {
       const now = new Date();
@@ -98,31 +141,30 @@ export class PresensiPage implements OnInit, OnDestroy {
       );
 
       const today = this.attendanceService.getTodayDateString();
+
       const todayRecord = Array.isArray(data)
-        ? data.find(
-            (x: any) =>
-              x.created_at?.startsWith(today) ||
-              x.date === today ||
-              x.check_in?.startsWith(today)
-          )
+        ? data.find((x: any) => {
+            const created = x.created_at ?? x.check_in ?? x.date;
+            return created && String(created).startsWith(today);
+          })
         : null;
 
       if (todayRecord) {
+        this.todayRecordId = todayRecord.id ?? null;
+
         if (todayRecord.check_in) {
-          this.checkInTime = new Date(todayRecord.check_in).toLocaleTimeString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          });
+          this.checkInTime = this.formatTimeString(todayRecord.check_in);
+          localStorage.setItem('checkInTime', this.checkInTime);
         }
 
         if (todayRecord.check_out) {
-          this.checkOutTime = new Date(todayRecord.check_out).toLocaleTimeString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          });
+          this.checkOutTime = this.formatTimeString(todayRecord.check_out);
+          localStorage.setItem('checkOutTime', this.checkOutTime);
         }
+      } else {
+        this.checkInTime = localStorage.getItem('checkInTime');
+        this.checkOutTime = localStorage.getItem('checkOutTime');
+        this.todayRecordId = null;
       }
 
       this.syncButtonStates();
@@ -152,6 +194,9 @@ export class PresensiPage implements OnInit, OnDestroy {
     await this.handlePresensi('check-out');
   }
 
+  /** =======================================
+   * GET GPS
+   * ======================================= */
   private async getAccuratePosition(): Promise<{ latitude: number; longitude: number }> {
     try {
       const position = await Geolocation.getCurrentPosition({
@@ -159,73 +204,41 @@ export class PresensiPage implements OnInit, OnDestroy {
         timeout: 10000,
         maximumAge: 0,
       });
-      console.log('📡 Posisi diperoleh:', position);
 
-      let { latitude, longitude, accuracy } = position.coords;
-      console.log(`📍 Lokasi (${accuracy}m):`, latitude, longitude);
+      const { latitude, longitude } = position.coords;
 
       if (!latitude || !longitude || latitude === 0 || longitude === 0) {
-        throw new Error('Koordinat tidak valid (0,0). Pastikan GPS aktif.');
+        throw new Error('Koordinat tidak valid. Pastikan GPS aktif.');
       }
 
-      // if (latitude > 0 && longitude > 100 && longitude < 120) {
-      //   console.warn('⚠️ Latitude salah tanda — dikoreksi otomatis.');
-      //   latitude = -Math.abs(latitude);
-      // }
-
-      // if (latitude > 50 && longitude < 0) {
-      //   console.warn('⚠️ Koordinat tertukar! Menukar latitude ↔ longitude');
-      //   [latitude, longitude] = [longitude, latitude];
-      // }
-
-      const dist = this.getDistanceFromOffice(latitude, longitude);
-      console.log(`📏 Jarak dari kantor: ${dist.toFixed(2)} meter`);
-
-      return { latitude: Number(latitude), longitude: Number(longitude) };
+      return { latitude, longitude };
     } catch (err) {
-      console.error('❌ Gagal mendapatkan lokasi:', err);
-      alert('Gagal mendapatkan lokasi. Pastikan GPS aktif & izinkan lokasi.');
+      alert('Gagal mendapatkan lokasi. Pastikan GPS aktif.');
       throw err;
     }
   }
 
-    private getDistanceFromOffice(lat: number, lon: number): number {
-    const R = 6371000; // meter
+  private getDistanceFromOffice(lat: number, lon: number): number {
+    const R = 6371000;
 
-    const latFrom = this.OFFICE_LAT * Math.PI / 180;
-    const lonFrom = this.OFFICE_LON * Math.PI / 180;
-    const latTo   = lat * Math.PI / 180;
-    const lonTo   = lon * Math.PI / 180;
+    const lat1 = this.OFFICE_LAT * Math.PI / 180;
+    const lon1 = this.OFFICE_LON * Math.PI / 180;
+    const lat2 = lat * Math.PI / 180;
+    const lon2 = lon * Math.PI / 180;
 
-    const latDelta = latTo - latFrom;
-    const lonDelta = lonTo - lonFrom;
+    const dLat = lat2 - lat1;
+    const dLon = lon2 - lon1;
 
     const a =
-      Math.pow(Math.sin(latDelta / 2), 2) +
-      Math.cos(latFrom) *
-        Math.cos(latTo) *
-        Math.pow(Math.sin(lonDelta / 2), 2);
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
 
-    const angle = 2 * Math.asin(Math.sqrt(a));
-
-    return angle * R;
+    return 2 * R * Math.asin(Math.sqrt(a));
   }
 
-  // private getDistanceFromOffice(lat: number, lon: number): number {
-  //   const R = 6371000;
-  //   const dLat = ((lat - this.OFFICE_LAT) * Math.PI) / 180;
-  //   const dLon = ((lon - this.OFFICE_LON) * Math.PI) / 180;
-
-  //   const a =
-  //     Math.sin(dLat / 2) ** 2 +
-  //     Math.cos((this.OFFICE_LAT * Math.PI) / 180) *
-  //       Math.cos((lat * Math.PI) / 180) *
-  //       Math.sin(dLon / 2) ** 2;
-
-  //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  //   return R * c;
-  // }
-
+  /** ========================================================
+   * HANDLE PRESENSI
+   * ======================================================== */
   private async handlePresensi(type: 'check-in' | 'check-out') {
     this.isLoading = true;
 
@@ -233,7 +246,12 @@ export class PresensiPage implements OnInit, OnDestroy {
       const { latitude, longitude } = await this.getAccuratePosition();
 
       const now = new Date();
-      const nowIso = now.toISOString();
+      const formattedNow = now.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
       const month = now.getMonth() + 1;
       const year = now.getFullYear();
 
@@ -242,17 +260,17 @@ export class PresensiPage implements OnInit, OnDestroy {
       );
 
       const today = this.attendanceService.getTodayDateString();
+
       const existing = Array.isArray(data)
-        ? data.find(
-            (x: any) =>
-              x.created_at?.startsWith(today) ||
-              x.date === today ||
-              x.check_in?.startsWith(today)
-          )
+        ? data.find((x: any) => {
+            const created = x.created_at ?? x.check_in ?? x.date;
+            return created && String(created).startsWith(today);
+          })
         : null;
 
       let res: any;
 
+      /** CHECK-IN */
       if (type === 'check-in') {
         if (existing?.check_in) {
           alert('⚠️ Kamu sudah melakukan check-in hari ini.');
@@ -261,7 +279,6 @@ export class PresensiPage implements OnInit, OnDestroy {
 
         res = await firstValueFrom(
           this.attendanceService.createAttendance({
-            check_in: nowIso,
             latitude,
             longitude,
             status: 'Hadir',
@@ -270,16 +287,14 @@ export class PresensiPage implements OnInit, OnDestroy {
           })
         );
 
-        this.checkInTime = now.toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        });
-
+        this.checkInTime = formattedNow;
         localStorage.setItem('checkInTime', this.checkInTime);
         localStorage.setItem('presensiDate', today);
+
+        this.navCtrl.navigateRoot('/tabs/beranda');
       }
 
+      /** CHECK-OUT */
       if (type === 'check-out') {
         if (!existing?.check_in) {
           alert('⚠️ Belum ada data check-in hari ini.');
@@ -291,9 +306,12 @@ export class PresensiPage implements OnInit, OnDestroy {
           return;
         }
 
+        const attendanceId = existing?.id ?? this.todayRecordId;
+        if (!attendanceId) await this.loadTodayAttendance();
+
         res = await firstValueFrom(
           this.attendanceService.updateAttendance({
-            check_out: nowIso,
+            id: attendanceId,
             latitude,
             longitude,
             status: 'Hadir',
@@ -302,24 +320,28 @@ export class PresensiPage implements OnInit, OnDestroy {
           })
         );
 
-        this.checkOutTime = now.toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        });
-
+        this.checkOutTime = formattedNow;
         localStorage.setItem('checkOutTime', this.checkOutTime);
+
+        this.navCtrl.navigateRoot('/tabs/beranda');
       }
 
-      alert(res?.message || `✅ ${type === 'check-in' ? 'Check-in' : 'Check-out'} berhasil.`);
+      alert(res?.message || 'Presensi berhasil.');
+
       await this.loadTodayAttendance();
       this.syncButtonStates();
     } catch (err: any) {
-      console.error('❌ Error presensi:', err);
       alert(err?.error?.message ?? err?.message ?? 'Terjadi kesalahan saat presensi.');
     } finally {
       this.isLoading = false;
       this.savePresensiData();
     }
+  }
+
+  isCheckoutAllowed(): boolean {
+    const now = new Date();
+    const cutoff = new Date();
+    cutoff.setHours(17, 1, 0, 0);
+    return now < cutoff;
   }
 }

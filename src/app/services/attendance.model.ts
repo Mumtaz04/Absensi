@@ -17,3 +17,10 @@ export interface Attendance {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface Attendance {
+  jamMasuk?: string | null;
+  jamKeluar?: string | null;
+  keterangan?: string | null;
+}
+
