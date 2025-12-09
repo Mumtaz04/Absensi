@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { firstValueFrom } from 'rxjs';
-
+import { Observable, firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://127.0.0.1:8000/api'; // base URL Laravel kamu
+  // Base API (sesuaikan bila backend di host/port lain)
+  private apiUrl = 'http://127.0.0.1:8000/api';
 
   constructor(private http: HttpClient) {}
 
@@ -19,46 +18,71 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/login`, { email, password });
   }
 
-    // =========================================================
-  // 🔹 PASSWORD RESET (main.trap)
   // =========================================================
-  // base URL khusus main.trap (ubah sesuai alamat main.trap kamu)
-  private mainTrapBase = 'https://main.trap'; // <-- ganti dengan URL main.trap
-
-  // Minta main.trap untuk mengirimkan email reset (link berisi token)
+  // 🔹 FORGOT PASSWORD (KIRIM EMAIL)
+  //   Laravel route: POST /api/forgot-password
+  // =========================================================
   requestPasswordReset(email: string): Observable<any> {
-    // contoh path: /api/password/forgot — sesuaikan jika back-end main.trap beda
-    return this.http.post(`${this.mainTrapBase}/api/password/forgot`, { email });
+    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
   }
 
-  // Kirim password baru bersama token yang didapat dari link email
-  resetPasswordWithToken(email: string, password: string, token: string): Observable<any> {
-    // contoh path: /api/password/reset — sesuaikan jika beda
-    return this.http.post(`${this.mainTrapBase}/api/password/reset`, { email, password, token });
+  // =========================================================
+  // 🔹 RESET PASSWORD (TOKEN DARI MAILTRAP)
+  //   Laravel route: POST /api/reset-password
+  // =========================================================
+  resetPasswordWithToken(
+    email: string,
+    password: string,
+    token: string
+  ): Observable<any> {
+
+    const payload = {
+      email,
+      password,
+      token,
+      password_confirmation: password // Laravel usually requires it
+    };
+
+    return this.http.post(`${this.apiUrl}/reset-password`, payload);
   }
 
-  // Simpan token ke localStorage
+  /**
+   * Dipakai halaman forgot-password
+   */
+  public async sendPasswordResetEmail(email: string): Promise<void> {
+    if (!email) {
+      throw new Error('Email kosong.');
+    }
+
+    try {
+      await firstValueFrom(this.requestPasswordReset(email));
+    } catch (err) {
+      console.error('AuthService.sendPasswordResetEmail error', err);
+      throw err;
+    }
+  }
+
+  // =========================================================
+  // 🔹 TOKEN HELPERS
+  // =========================================================
   saveToken(token: string): void {
     localStorage.setItem('token', token);
   }
 
-  // Ambil token dari localStorage
   getToken(): string | null {
     return localStorage.getItem('token');
   }
 
-  // Cek apakah user sudah login
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
   }
 
-  // Logout dan hapus token
   logout(): void {
     localStorage.removeItem('token');
   }
 
   // =========================================================
-  // 🔹 TAMBAH USER (Karyawan Baru)
+  // 🔹 TAMBAH USER (FORM DATA TIDAK DIUBAH)
   // =========================================================
   addUser(): Observable<any> {
     const token = this.getToken();
@@ -83,27 +107,6 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/admin/users`, formData, { headers });
   }
 
-    /**
-   * Mengirimkan request reset password.
-   * Dipakai oleh komponen yang menggunakan `await this.auth.sendPasswordResetEmail(email)`.
-   * Memanggil endpoint main.trap yang sudah kamu definisikan di requestPasswordReset().
-   */
-  public async sendPasswordResetEmail(email: string): Promise<void> {
-    if (!email) {
-      throw new Error('Email kosong.');
-    }
-
-    try {
-      // requestPasswordReset mengembalikan Observable — ubah ke Promise menggunakan firstValueFrom
-      await firstValueFrom(this.requestPasswordReset(email));
-      // sukses: tidak perlu return value (komponen hanya menunggu resolve)
-    } catch (err) {
-      // lemparkan kembali agar komponen bisa menanganinya
-      console.error('AuthService.sendPasswordResetEmail error', err);
-      throw err;
-    }
-  }
-
   // =========================================================
   // 🔹 GET PROFILE USER
   // =========================================================
@@ -121,7 +124,7 @@ export class AuthService {
   }
 
   // =========================================================
-  // 🔹 CONTOH REQUEST DENGAN AUTH HEADER UMUM
+  // 🔹 COMMON AUTH HEADER
   // =========================================================
   private getAuthHeaders(): HttpHeaders {
     const token = this.getToken();

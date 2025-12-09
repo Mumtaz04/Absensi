@@ -1,10 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth.service';
-import { ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-forgot-password',
@@ -46,7 +44,7 @@ export class ForgotPasswordPage {
   // method yang diakses dari template — harus public
   public async sendVerification(): Promise<void> {
     if (this.form.invalid) {
-      this.showToast('Masukkan email yang valid');
+      await this.showToast('Masukkan email yang valid');
       return;
     }
 
@@ -54,8 +52,7 @@ export class ForgotPasswordPage {
     this.loading = true;
 
     try {
-      // Panggil service nyata di sini; contoh menggunakan auth service kamu
-      // Jika masih belum implement, kamu bisa comment line ini sementara.
+      // Panggil service nyata di sini; menggunakan method yang ada di auth.service.ts
       await this.auth.sendPasswordResetEmail(email);
 
       // Step 2: tunjukkan konfirmasi (mirip middle Figma)
@@ -71,9 +68,15 @@ export class ForgotPasswordPage {
         this.showExpiredNotice = true;
         // lock input (readonly sudah di template via step>1)
       }, 700);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Gagal kirim verifikasi:', err);
-      await this.showToast('Gagal mengirim email. Coba lagi.');
+
+      // Tampilkan pesan error yang lebih informatif bila tersedia
+      let message = 'Gagal mengirim email. Coba lagi.';
+      if (err instanceof Error && err.message) message = err.message;
+      else if (err?.error?.message) message = err.error.message;
+
+      await this.showToast(message);
     } finally {
       this.loading = false;
     }
