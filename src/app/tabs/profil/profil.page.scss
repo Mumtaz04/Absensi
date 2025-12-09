@@ -1,0 +1,441 @@
+/* ===============================
+🌿 PROFIL PAGE (PERBAIKAN AKHIR)
+=============================== */
+
+ion-content.profil-content {
+  --background: #f6f6f6;
+  position: relative;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 120px;
+}
+
+/* ===============================
+🌿 HEADER HIJAU LENGKUNG
+=============================== */
+.profile-header {
+  background: #12a84f;
+  width: 100%;
+  height: 420px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  z-index: 1;
+}
+
+/* ===============================
+🌿 TEKS PROFIL SAYA
+=============================== */
+.profile-title {
+  font-weight: 800;
+  font-size: 26px;
+  text-align: center;
+  color: #ffffff;
+  margin-top: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ===============================
+🌿 FOTO PROFIL
+=============================== */
+.profile-photo-wrapper {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  overflow: visible; /* supaya tombol edit keluar dari batas */
+  border: 5px solid #ffffff;
+  background: #ffffff;
+  position: relative;
+  z-index: 10;
+  margin-top: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-photo-wrapper:hover {
+  transform: translateX(-50%) scale(1.03);
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* ===============================
+🌿 FOTO EDIT OVERLAY (Figma-like)
+=============================== */
+.photo-edit-btn {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #2d8cff; /* biru mirip figma */
+  box-shadow: 0 8px 18px rgba(45, 140, 255, 0.3);
+  z-index: 20;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.photo-edit-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.photo-edit-icon {
+  color: #fff;
+  font-size: 18px;
+  margin: 0;
+}
+
+/* ===============================
+🌿 IDENTITAS PROFIL
+=============================== */
+.profile-identity {
+  text-align: center;
+  margin-top: 18px;
+  z-index: 10;
+  position: relative;
+}
+
+.profile-name {
+  font-weight: 700;
+  font-size: 22px;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.profile-position {
+  font-size: 15px;
+  color: #e8e8e8;
+  margin-bottom: 10px;
+}
+/* ===============================
+🌿 PROFIL (EDIT)
+=============================== */
+.edit-btn {
+  float: right;
+  color: #12a84f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edit-input {
+  font-size: 15px;
+  font-weight: 600;
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  border-radius: 10px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+/* ===============================
+🌿 STATUS BADGE (AKTIF)
+=============================== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e6f9ec;
+  color: #12a84f;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 50px;
+  box-shadow: 0 3px 8px rgba(18, 168, 79, 0.2);
+}
+
+.status-badge .dot {
+  font-size: 10px;
+  margin-right: 8px;
+}
+
+/* ===============================
+🌿 SECTION INFORMASI PERSONAL
+=============================== */
+.profile-section {
+  width: 90%;
+  max-width: 450px;
+  margin-top: 36px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 26px 22px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+  z-index: 5;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===============================
+🌿 ICON EDIT PERSIS FIGMA
+=============================== */
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e1e1e;
+    margin-bottom: 18px;
+    position: relative;
+}
+
+.edit-btn {
+    position: absolute;
+    right: 0;
+    top: 2px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.edit-icon {
+    font-size: 25px;
+    color: #787878;
+    font-weight: 700;
+}
+
+.edit-text {
+    color: #12a84f;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+/* ===============================
+🌿 EDIT BUTTON 
+=============================== */
+.edit-btn {
+  background: transparent;
+  border: none;
+  top: -5px;
+  right: 5px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s ease, color 0.2s ease;
+
+  font-size: 25px;
+  color: #4a4a4a;
+}
+
+/* Saat ditekan → gelap */
+.edit-btn:active {
+  background: #e0e0e0;
+}
+
+.edit-btn:active ion-icon {
+  color: #2c2c2c;
+}
+
+/* ===============================
+🌿 CARD INFORMASI — SAMA DENGAN FIGMA
+=============================== */
+.info-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid #e7e7e7;
+  background: #ffffff;
+  margin-bottom: 14px;
+  transition: 0.2s ease;
+}
+
+.info-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.info-icon-box {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f5f7;
+  border-radius: 14px;
+}
+
+.info-icon {
+  font-size: 22px;
+  color: #1e1e1e !important;
+}
+
+.info-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 13px;
+  color: #7c7c7c;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e1e1e;
+  margin-top: 2px;
+}
+
+/* ===============================
+🌿 LOGOUT BUTTON
+=============================== */
+.logout-btn {
+  margin: 28px auto 100px;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 14px;
+  font-weight: 600;
+  --border-color: var(--ion-color-danger);
+  --color: var(--ion-color-danger);
+  --border-width: 2px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 0, 0, 0.06);
+}
+
+/* ===============================
+🌿 FOOTER NAVIGASI
+=============================== */
+.bottom-footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.footer-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  font-size: 26px;
+  color: #999;
+  transition: 0.2s;
+}
+
+.nav-btn.active,
+.nav-btn:hover {
+  color: #12a84f;
+  transform: scale(1.15);
+}
+
+/* ===============================
+🌿 MODAL ZOOM (ANDROID TETAP — DESKTOP DIPERBAIKI)
+=============================== */
+
+/* global */
+.image-modal::part(content),
+.image-modal::part(wrapper) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.image-modal ion-content {
+  --background: transparent !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ✅ DEFAULT (Android) — tetap seperti semula */
+.zoom-img.circle {
+  display: block;
+  margin: 220px auto 0 auto;
+  width: 65vw;
+  height: 65vw;
+  max-width: 380px;
+  max-height: 380px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid #fff;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+  animation: fadeIn 0.3s ease;
+  transition: transform 0.3s ease;
+}
+
+/* ===============================
+🌿 PERBAIKAN RESPONSIVE DESKTOP
+=============================== */
+
+@media (min-width: 900px) {
+  .profile-section {
+    width: 70%;
+    max-width: 700px;
+    margin-top: 60px;
+  }
+}
+
+@media (min-width: 1200px) {
+  ion-content.profil-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .profile-section {
+    width: 65%;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .logout-btn {
+    width: 65%;
+    max-width: 720px;
+    margin: 28px auto 100px;
+  }
+}
+
+ion-alert {
+  --background: #ffffff;
+  --border-radius: 16px;
+  --message-color: #000;
+  --header-color: #000;
+  --width: 320px;
+}
+
+.alert-button-cancel {
+  color: #ffffff !important;
+  background-color: #e53935 !important;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 500;
+}
+
+.alert-button-confirm {
+  color: #ffffff !important;
+  background-color: #2ecc71 !important;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 500;
+}

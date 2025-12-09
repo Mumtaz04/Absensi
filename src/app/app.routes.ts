@@ -26,7 +26,7 @@ export const routes: Routes = [
   {
     path: 'riwayat-izin',
     loadComponent: () =>
-      import('./tabs/riwayat-izin/riwayat-izin.page').then(
+      import('./pages/riwayat-izin/riwayat-izin.page').then(
         (m) => m.RiwayatIzinPage
       ),
   },
@@ -40,7 +40,7 @@ export const routes: Routes = [
   {
     path: 'presensi-wajah',
     loadComponent: () =>
-      import('./pages/presensi/presensi.page').then(
+      import('./tabs/presensi/presensi.page').then(
         (m) => m.PresensiPage
       ),
   },

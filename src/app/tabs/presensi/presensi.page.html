@@ -1,0 +1,108 @@
+<ion-header>
+  <ion-toolbar color="success">
+    <ion-title class="title-center">Presensi</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+    <ion-content [fullscreen]="true" class="presensi-content">
+      <div class="presensi-container">
+        <div class="presensi-card">
+    <!-- tempatkan work-info SEBELUM circle-time -->
+    <div class="work-info">
+      <div class="work-label">Jam kerja: <strong>09:00 — 16:00</strong></div>
+      <div class="work-label">Hari kerja: <strong>Senin — Jum'at</strong></div>
+    </div>
+
+    <div class="circle-time">
+      <p class="label-waktu">Waktu Sekarang</p>
+      <h1 class="time-text">{{ currentTime }}</h1>
+      <p class="date-text">{{ currentDate }}</p>
+    </div>
+
+      <div class="status-presensi--wrapper">
+        <div class="time-row">
+          <div class="time-card">
+            <div class="label">Check-In</div>
+            <div class="small-time">{{ checkInTime || '-- : --' }}</div>
+          </div>
+
+          <div class="time-card">
+            <div class="label">Check-Out</div>
+            <div class="small-time">{{ checkOutTime || '-- : --' }}</div>
+          </div>
+        </div>
+
+        <div class="action-row">
+
+          <!-- BUTTON CHECK-IN -->
+          <ion-button
+            class="checkin-pill"
+            [disabled]="checkInTime !== null || isLoading"
+            (click)="checkIn()"
+            expand="block"
+          >
+            <ion-spinner *ngIf="isLoading && checkInTime === null" name="crescent"></ion-spinner>
+            <span *ngIf="!isLoading">
+              {{ checkInTime ? 'Sudah Check-In' : 'Check-In' }}
+            </span>
+          </ion-button>
+
+          <!-- BUTTON CHECK-OUT (FINAL FIX) -->
+          <ion-button
+            class="checkout-pill"
+            [disabled]="
+              checkInTime === null ||
+              checkOutTime !== null ||
+              isLoading ||
+              !isCheckoutAllowed()
+            "
+            (click)="checkOut()"
+            expand="block"
+          >
+            <ion-spinner *ngIf="isLoading && checkOutTime === null" name="crescent"></ion-spinner>
+            <span *ngIf="!isLoading">
+              {{ checkOutTime ? 'Sudah Check-Out' : 'Check-Out' }}
+            </span>
+          </ion-button>
+
+        </div>
+      </div>
+
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        class="riwayat-btn"
+        (click)="goToRiwayatPresensi()"
+      >
+        <ion-icon name="document-text-outline" slot="start"></ion-icon>
+        Riwayat Presensi
+      </ion-button>
+
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        class="pengajuan-btn"
+        (click)="goToPengajuanIzin()"
+      >
+        <ion-icon name="document-text-outline" slot="start"></ion-icon>
+        Pengajuan Izin
+      </ion-button>
+
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item" routerLink="/tabs/beranda">
+      <ion-icon name="home-outline"></ion-icon>
+    </div>
+
+    <div class="nav-item active" routerLink="/tabs/presensi">
+      <ion-icon name="time-outline"></ion-icon>
+    </div>
+
+    <div class="nav-item" routerLink="/tabs/profil">
+      <ion-icon name="person-outline"></ion-icon>
+    </div>
+  </div>
+</ion-content>

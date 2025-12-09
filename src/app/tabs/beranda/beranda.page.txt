@@ -1,0 +1,5 @@
+  <!-- <img
+    [src]="userPhotoUrl"
+    alt="Foto Profil"
+    class="profile-photo"
+  /> -->

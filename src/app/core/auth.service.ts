@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
+
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +17,24 @@ export class AuthService {
   // =========================================================
   login(email: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, { email, password });
+  }
+
+    // =========================================================
+  // 🔹 PASSWORD RESET (main.trap)
+  // =========================================================
+  // base URL khusus main.trap (ubah sesuai alamat main.trap kamu)
+  private mainTrapBase = 'https://main.trap'; // <-- ganti dengan URL main.trap
+
+  // Minta main.trap untuk mengirimkan email reset (link berisi token)
+  requestPasswordReset(email: string): Observable<any> {
+    // contoh path: /api/password/forgot — sesuaikan jika back-end main.trap beda
+    return this.http.post(`${this.mainTrapBase}/api/password/forgot`, { email });
+  }
+
+  // Kirim password baru bersama token yang didapat dari link email
+  resetPasswordWithToken(email: string, password: string, token: string): Observable<any> {
+    // contoh path: /api/password/reset — sesuaikan jika beda
+    return this.http.post(`${this.mainTrapBase}/api/password/reset`, { email, password, token });
   }
 
   // Simpan token ke localStorage
@@ -61,6 +81,27 @@ export class AuthService {
     });
 
     return this.http.post(`${this.apiUrl}/admin/users`, formData, { headers });
+  }
+
+    /**
+   * Mengirimkan request reset password.
+   * Dipakai oleh komponen yang menggunakan `await this.auth.sendPasswordResetEmail(email)`.
+   * Memanggil endpoint main.trap yang sudah kamu definisikan di requestPasswordReset().
+   */
+  public async sendPasswordResetEmail(email: string): Promise<void> {
+    if (!email) {
+      throw new Error('Email kosong.');
+    }
+
+    try {
+      // requestPasswordReset mengembalikan Observable — ubah ke Promise menggunakan firstValueFrom
+      await firstValueFrom(this.requestPasswordReset(email));
+      // sukses: tidak perlu return value (komponen hanya menunggu resolve)
+    } catch (err) {
+      // lemparkan kembali agar komponen bisa menanganinya
+      console.error('AuthService.sendPasswordResetEmail error', err);
+      throw err;
+    }
   }
 
   // =========================================================

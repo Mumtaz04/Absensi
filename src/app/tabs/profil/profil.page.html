@@ -1,0 +1,155 @@
+<ion-header class="no-border">
+  <ion-toolbar color="success" class="profile-toolbar">
+    <ion-title class="profile-title">Profil Saya</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="profil-content">
+
+  <div class="profile-header"></div>
+
+  <!-- PROFILE PHOTO WRAPPER:
+      klik pada wrapper → buka zoom (openImage)
+      klik pada tombol edit (openPhotoChooser) → buka file picker (stopPropagation dipakai)
+  -->
+  <!-- tambahkan input file tersembunyi ini di dalam <ion-content> -->
+  <input #fileInput type="file" accept="image/*" style="display:none" (change)="onFileSelected($event)">
+
+  <div class="profile-photo-wrapper" (click)="openImage()" role="button" aria-label="Lihat foto profil">
+    <img [src]="profileImage" alt="Profile" class="profile-img" />
+
+    <!-- tombol edit overlay (Figma style) -->
+    <button class="photo-edit-btn" (click)="openPhotoChooser($event)" title="Ubah Foto Profil" aria-label="Ubah Foto Profil">
+      <ion-icon name="pencil" class="photo-edit-icon"></ion-icon>
+    </button>
+  </div>
+
+  <div class="profile-identity">
+    <h2 class="profile-name">{{ user?.name}}</h2>
+    <p class="profile-position">{{ user?.position || 'Karyawan' }}</p>
+    <div class="status-badge">
+      <ion-icon name="ellipse" class="dot"></ion-icon>
+      <span>Aktif</span>
+    </div>
+  </div>
+
+  <div class="profile-section">
+  <h3 class="section-title">
+    Informasi Personal
+
+    <button class="edit-btn" [class.active]="editMode" (click)="toggleEdit()">
+      <ion-icon 
+        *ngIf="!editMode"
+        class="edit-icon"
+        name="pencil-outline">
+      </ion-icon>
+
+      <span class="edit-text">
+        {{ editMode ? 'SELESAI' : '' }}
+      </span>
+    </button>
+  </h3>
+
+    <div class="info-card" [class.disabled]="editMode">
+      <div class="info-icon-box">
+        <ion-icon name="mail-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Email</span>
+        <span class="info-value">{{ user?.email }}</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon-box">
+        <ion-icon name="briefcase-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Jabatan</span>
+        <span class="info-value">{{ user?.position || 'Karyawan' }}</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon-box">
+        <ion-icon name="call-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Nomor Telepon</span>
+
+        <ion-input
+          *ngIf="editMode"
+          [(ngModel)]="editPhone"
+          type="tel"
+          class="edit-input">
+        </ion-input>
+
+        <span class="info-value" *ngIf="!editMode">
+          {{ user?.phone || '-' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon-box">
+        <ion-icon name="calendar-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Tanggal Bergabung</span>
+        <span class="info-value">{{ user?.created_at | date: 'dd MMMM yyyy' }}</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon-box">
+        <ion-icon name="location-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Alamat</span>
+
+        <ion-textarea
+          *ngIf="editMode"
+          [(ngModel)]="editAddress"
+          auto-grow="true"
+          class="edit-input">
+        </ion-textarea>
+
+        <span class="info-value" *ngIf="!editMode">
+          {{ user?.address || 'Belum diisi' }}
+        </span>
+      </div>
+    </div>
+
+  </div> 
+  <!-- ✔️ EDIT PROFIL-->
+
+  <ion-button expand="block" fill="outline" color="danger" class="logout-btn" (click)="logout()">
+    <ion-icon slot="start" name="log-out-outline"></ion-icon>
+    Logout
+  </ion-button>
+
+  <ion-modal [isOpen]="showImage" (didDismiss)="closeImage()" cssClass="image-modal">
+    <ng-template>
+      <div class="modal-content" (click)="closeImage()">
+        <img [src]="profileImage" alt="Zoom Profile" class="zoom-img circle" />
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <ion-footer class="bottom-footer" translucent>
+    <ion-toolbar>
+      <div class="footer-nav">
+        <button class="nav-btn" routerLink="/tabs/beranda">
+          <ion-icon name="home-outline"></ion-icon>
+        </button>
+        <button class="nav-btn" routerLink="/tabs/riwayat-izin">
+          <ion-icon name="time-outline"></ion-icon>
+        </button>
+        <button class="nav-btn active" routerLink="/tabs/akun">
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </button>
+      </div>
+    </ion-toolbar>
+  </ion-footer>
+
+</ion-content>

@@ -1,0 +1,212 @@
+/* ---------- Global content background (abu-abu seperti Figma) --------- */
+.content-figma {
+  --background: #f3f4f6; /* abu-abu terang */
+  background: var(--background);
+}
+
+/* ---------- Header / Toolbar ---------- */
+.toolbar-figma {
+  --background: #16a34a;
+  background: var(--background);
+  height: 110px;
+  min-height: 110px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.04);
+  z-index: 3;
+}
+
+.back-wrap { display: flex; align-items: center; }
+.back-btn {
+  --color: #ffffff;
+  --icon-color: #ffffff;
+  font-size: 26px;
+  height: 48px;
+  width: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -4px;
+}
+
+.title-wrap { display:flex; justify-content:center; align-items:center; width:100%; }
+.title-figma {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+/* ---------- Filter area (small card-like left aligned) ---------- */
+.filter-area {
+  background: transparent;
+  padding: 12px 12px 6px 16px;
+  margin-top: 0;
+  z-index: 2;
+}
+
+/* card-like wrapper kecil, sekarang abu-abu lembut (bukan putih) */
+.filter-card-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+
+  /* ubah dari putih menjadi abu-abu sangat muda agar menyatu dengan background */
+  background: #eef2f5; /* <-- abu-abu lembut, bukan putih */
+  border: 1px solid rgba(0,0,0,0.03);
+  box-shadow: 0 6px 16px rgba(2,6,23,0.03);
+}
+
+/* icon funnel */
+.filter-icon {
+  font-size: 18px;
+  color: #0f172a;
+}
+
+/* small pill for select (kiri-aligned) — sekarang tidak putih penuh */
+.filter-pill-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  min-width: 140px;
+  border-radius: 8px;
+
+  /* buat pill transparan sehingga mengikuti tone card kecil.
+     Jika ingin sedikit kontras, gunakan rgba(255,255,255,0.6) atau very light gray */
+  background: transparent;
+  color: #0f172a;
+  border: none;
+}
+
+/* text inside select */
+.filter-pill-small ion-select {
+  --placeholder-color: #0f172a;
+  --color: #0f172a;
+  --padding-start: 0;
+  --padding-end: 0;
+  font-size: 14px;
+  font-weight: 700;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* hide ion-select internal icon reliably */
+.filter-pill-small ion-select::part(icon),
+.filter-pill-small ion-select::part(chevron),
+.filter-pill-small ion-select .select-icon,
+.filter-pill-small ion-select .select-chevron,
+.filter-pill-small ion-select .select-arrow {
+  display: none !important;
+}
+
+/* decorative chevron */
+.chev {
+  font-size: 16px;
+  color: #0f172a;
+  pointer-events: none;
+}
+
+/* ---------- Cards area ---------- */
+.page-padding {
+  padding: 16px;
+  margin-top: 6px;
+}
+
+/* card spacing */
+.card-wrap {
+  margin-bottom: 16px;
+}
+
+/* white cards on gray background (keep contrast like Figma) */
+.izin-card {
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: visible;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.06);
+  border: 0;
+}
+
+/* content spacing */
+.izin-card ion-card-content {
+  padding: 18px;
+  position: relative;
+}
+
+/* header inside card */
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* title */
+.title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.1;
+  flex: 1 1 auto;
+}
+
+/* status badge */
+.status-badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.status-icon { font-size: 16px; }
+.status-badge.menunggu { background: #fff4d8; color: #b45309; }
+.status-badge.disetujui { background: #e6ffef; color: #059669; }
+.status-badge.ditolak { background: #ffeded; color: #dc2626; }
+
+/* date and info rows */
+.date-range { font-size: 14px; color: #6b7280; margin-top: 8px; margin-bottom: 10px; }
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+  margin: 6px 0;
+}
+.info-row ion-icon { font-size: 18px; color: #9ca3af; margin-top: 2px; }
+
+.desc .desc-text { display: block; white-space: normal; line-height: 1.4; color: #4b5563; }
+
+/* divider */
+.divider { height: 1px; background: #ececec; margin: 14px 0; border-radius: 1px; }
+
+/* footer */
+.card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.submitted { font-size: 12px; color: #9ca3af; }
+
+/* detail action */
+.actions ion-button { --padding-start: 0; --padding-end: 0; color: #2563eb; font-weight: 700; font-size: 13px; }
+
+/* highlight new */
+.izin-card.new { box-shadow: 0 18px 40px rgba(37,99,235,0.06); transform: translateY(-2px); }
+
+/* empty */
+.empty { padding: 40px 12px; text-align: center; color: #9ca3af; }
+
+/* responsive */
+@media (max-width: 420px) {
+  .toolbar-figma { height: 96px; min-height: 96px; }
+  .title-figma { font-size: 22px; }
+  .filter-area { padding: 8px 10px 6px 12px; }
+  .filter-card-small { padding: 6px 8px; }
+  .filter-pill-small { min-width: 120px; font-size: 13px; }
+  .title { font-size: 16px; }
+  .status-badge { padding: 6px 10px; font-size: 13px; }
+}

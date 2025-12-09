@@ -37,27 +37,19 @@
     <!-- BODY -->
     <div class="table-body">
 
-      <!-- dynamic rows -->
       <ng-container *ngIf="calendar && calendar.length; else fallbackStatic">
-        <div *ngFor="let day of calendar" class="table-row"
-             [ngClass]="{
-               'terlambat': day.status === 'Terlambat' || day.status === 'Terlambat',
-               'cuti': day.status && day.status.toLowerCase().includes('cuti') || (day.status && day.status.toLowerCase() === 'izin'),
-               'alfa': day.status === 'Alfa' || day.status === 'alfa',
-               'libur': day.status === 'Libur' || day.status === 'libur',
-               'merged': (day.status && (day.status === 'Libur' || (day.status && day.status.toLowerCase().includes('cuti'))))
-             }">
+        <div *ngFor="let day of calendar"
+            class="table-row"
+            [ngClass]="statusClass(day.status)">
 
-          <!-- If merged (Libur/Cuti) we still render 3 cols but with text in middle columns -->
           <div class="col tanggal">{{ day.day }}</div>
 
-          <!-- merged libur/cuti: show label + description -->
-          <ng-container *ngIf="(day.status === 'Libur') || (day.status && day.status.toLowerCase().includes('cuti')); else normalCols">
-            <div class="col merge-left">{{ day.status === 'Libur' ? 'Libur' : (day.status || 'Cuti')}}</div>
-            <div class="col merge-right">{{ day.description || (day.status === 'Libur' ? 'Akhir pekan' : '-') }}</div>
+          <!-- merged untuk libur/cuti -->
+          <ng-container *ngIf="statusClass(day.status) === 'cuti' || statusClass(day.status) === 'libur'; else normalCols">
+            <div class="col merge-left">{{ day.status }}</div>
+            <div class="col merge-right">{{ day.description || '-' }}</div>
           </ng-container>
 
-          <!-- normal: two time columns -->
           <ng-template #normalCols>
             <div class="col">{{ fmtTime(day.check_in) }}</div>
             <div class="col">{{ fmtTime(day.check_out) }}</div>
@@ -66,15 +58,12 @@
         </div>
       </ng-container>
 
-      <!-- fallback: jika backend gagal, tampilkan placeholder (sama seperti static you had) -->
       <ng-template #fallbackStatic>
-        <!-- You kept your original static rows if needed as fallback -->
         <div class="table-row">
           <div class="col tanggal">1</div>
           <div class="col">09:00</div>
           <div class="col">16:00</div>
         </div>
-        <!-- (other static rows omitted for brevity) -->
       </ng-template>
 
     </div>

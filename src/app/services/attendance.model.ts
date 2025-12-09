@@ -11,6 +11,7 @@ export interface Attendance {
   check_out?: string;
   latitude?: number;
   longitude?: number;
+  accuracy?: number | null;
   status?: string;
   month?: number;
   year?: number;
@@ -22,5 +23,6 @@ export interface Attendance {
   jamMasuk?: string | null;
   jamKeluar?: string | null;
   keterangan?: string | null;
+  message?: string; 
 }
 

@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar class="toolbar-figma">
+    <ion-buttons slot="start" class="back-wrap">
+      <ion-back-button defaultHref="/" class="back-btn" icon="chevron-back-outline"></ion-back-button>
+    </ion-buttons>
+
+    <div class="title-wrap">
+      <ion-title class="title-figma">Riwayat Izin</ion-title>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<!-- set class content-figma untuk background abu-abu -->
+<ion-content class="content-figma">
+  <!-- filter area: kecil, kiri, menyatu dengan background abu -->
+  <div class="filter-area">
+    <div class="filter-card-small">
+      <ion-icon name="funnel-outline" class="filter-icon" aria-hidden="true"></ion-icon>
+
+      <div class="filter-pill-small" role="group" aria-label="Filter riwayat izin">
+        <ion-select
+          interface="popover"
+          placeholder="Semua"
+          [(ngModel)]="filter"
+          (ionChange)="setFilter(filter)"
+          class="select-no-icon"
+        >
+          <ion-select-option value="semua">Semua</ion-select-option>
+          <ion-select-option value="Disetujui">Disetujui</ion-select-option>
+          <ion-select-option value="Menunggu">Menunggu</ion-select-option>
+          <ion-select-option value="Ditolak">Ditolak</ion-select-option>
+        </ion-select>
+
+        <ion-icon name="chevron-down-outline" class="chev" aria-hidden="true"></ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- main content: cards area (cards tetap putih) -->
+  <div class="page-padding">
+    <div *ngIf="filteredIzin()?.length; else emptyState">
+      <div *ngFor="let izin of filteredIzin()" class="card-wrap">
+        <ion-card class="izin-card" [class.new]="izin.__isNew">
+          <ion-card-content>
+            <div class="card-head">
+              <h3 class="title">{{ izin.alasan }}</h3>
+              <div class="status-badge" [ngClass]="(izin.status || 'Menunggu').toLowerCase()">
+                <ion-icon [name]="statusIcon(izin.status)" class="status-icon" slot="start"></ion-icon>
+                <span class="status-text">{{ izin.status || 'Menunggu' }}</span>
+              </div>
+            </div>
+
+            <div class="date-range">
+              <ng-container *ngIf="izin.dari || izin.sampai; else tanggalField">
+                {{ formatDateShort(izin.dari) }} - {{ formatDateShort(izin.sampai) }}
+              </ng-container>
+              <ng-template #tanggalField>
+                {{ izin.tanggal || '-' }}
+              </ng-template>
+            </div>
+
+            <div class="info-row">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>Durasi: {{ izin.durasi || (izin.durasiHari ? (izin.durasiHari + ' hari') : '-') }}</span>
+            </div>
+
+            <div class="info-row desc">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <span class="desc-text">{{ izin.deskripsi || izin.alasan || '-' }}</span>
+            </div>
+
+            <div class="divider" role="separator" aria-hidden="true"></div>
+
+            <div class="card-footer">
+              <div class="submitted">
+                Diajukan {{ formatDateShort(izin.createdAt) }}, {{ formatTimeShort(izin.createdAt) }}
+              </div>
+
+              <div class="actions">
+                <ion-button fill="clear" size="small" (click)="toggleDetail(izin)">DETAIL</ion-button>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty">
+        <p>Tidak ada data izin.</p>
+      </div>
+    </ng-template>
+  </div>
+</ion-content>

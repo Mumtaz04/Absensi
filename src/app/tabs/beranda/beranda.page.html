@@ -10,21 +10,22 @@
     <p class="header-subtitle">Dashboard Presensi</p>
   </div>
 
-    <!-- 👤 Kartu Profil -->
-    <!-- ✅ Card Profil — seluruh card bisa diklik -->
-    <div class="profile-card" (click)="goToProfile()">
-      <div class="profile-header">
-        <img [src]="userPhotoUrl" (error)="onPhotoError($event)" alt="Foto Profil" class="profile-photo" />
+  <!-- 👤 Kartu Profil -->
+  <div class="profile-card" (click)="goToProfile()">
+    <div class="profile-header">
+      <img
+        [src]="userPhotoUrl || 'assets/icon/default-profile.png'"
+        (error)="onPhotoError($event)"
+        alt="Foto Profil"
+        class="profile-photo"
+      />
       <div class="profile-info">
         <h2>{{ user?.name || 'Nama User' }}</h2>
         <p>{{ user?.position || 'Jabatan' }}</p>
         <p>{{ user?.email || 'email@example.com' }}</p>
       </div>
     </div>
-
-    <!-- Tombol tetap kelihatan tapi tidak klik terpisah -->
-      <!-- <ion-button expand="block" fill="outline" class="detail-btn">Detail Profil</ion-button> -->
-    </div>
+  </div>
 
   <!-- 🔄 Loading -->
   <ng-template #loadingProfile>
@@ -46,16 +47,12 @@
       <span>Riwayat Izin</span>
     </div>
   </div>
-  <!-- <div class="notif-dot"></div> -->
 
   <!-- ⏰ Presensi -->
-  <!-- CARD STATUS PRESENSI -->
-  <!-- CARD PRESENSI -->
   <div class="presensi-card">
     <div class="presensi-header">
       <h3>Status Hari Ini</h3>
 
-      <!-- Badge Dinamis -->
       <span class="status-badge"
         [ngClass]="{
           'belum': statusPresensi.status === 'belum',
@@ -73,7 +70,6 @@
       </span>
     </div>
 
-    <!-- Box Check In / Out -->
     <div class="presensi-body">
       <div class="presensi-box-group">
         <div class="presensi-box masuk">
@@ -100,8 +96,6 @@
       {{ statusPresensi.pesan }}
     </p>
   </div>
-
-
 
   <!-- 📊 Statistik -->
   <ion-card class="statistik-card">

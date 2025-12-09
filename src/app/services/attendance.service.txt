@@ -1,0 +1,549 @@
+// src/app/services/attendance.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Attendance } from './attendance.model';
+import { Observable, of, throwError, Subject } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
+import { Platform } from '@ionic/angular';
+import { Geolocation } from '@capacitor/geolocation';
+import { environment } from '../../environments/environment';
+import { firstValueFrom } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AttendanceService {
+  /** 🌐 Base URL API Laravel */
+  private baseUrl = 'http://127.0.0.1:8000/api/employee';
+
+  /** 🔔 Notifikasi realtime checkin/checkout */
+  private presensiChanged = new Subject<void>();
+  presensiChanged$ = this.presensiChanged.asObservable();
+
+  // lokasi kantor tersimpan (diisi dari localStorage atau endpoint server)
+  officeLat: number = 0;
+  officeLng: number = 0;
+  officeRadius: number = 0;
+
+constructor(private http: HttpClient, private platform: Platform) {
+  // load sensor dari localStorage saat service dibuat
+  this.loadSensorSetting();
+
+  // jika belum tersedia (officeLat/lng = 0), gunakan default dari environment (agar frontend sinkron
+  // dengan backend .env kalau backend tidak menyediakan endpoint /sensor).
+  if ((!this.officeLat || !this.officeLng) && environment?.officeLat && environment?.officeLng) {
+    // simpan ke localStorage dan load
+    this.saveSensorSetting(Number(environment.officeLat), Number(environment.officeLng), Number(environment.officeRadius ?? 0));
+    console.info('[AttendanceService] loaded office sensor from environment defaults:', this.officeLat, this.officeLng, this.officeRadius);
+  }
+}
+
+
+
+  notifyPresensiChanged() {
+    this.presensiChanged.next();
+  }
+
+  /** 🔑 Header autentikasi */
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+      // jangan set Content-Type untuk FormData (browser akan set otomatis)
+    });
+  }
+
+  /** 📆 Utility — tanggal hari ini */
+  getTodayDateString(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  getAttendanceHistory(month?: number, year?: number): Observable<Attendance[]> {
+    const now = new Date();
+    const m = month ?? now.getMonth() + 1;
+    const y = year ?? now.getFullYear();
+    const url = `${this.baseUrl}/attendances/history?month=${m}&year=${y}`;
+    return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
+      map((res) => {
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res?.data)) return res.data;
+        return [];
+      }),
+      catchError((err) => {
+        console.error('❌ getAttendanceHistory error:', err);
+        return of([]);
+      })
+    );
+  }
+
+  getAttendanceCalendar(month?: number, year?: number): Observable<any[]> {
+    const now = new Date();
+    const m = month ?? now.getMonth() + 1;
+    const y = year ?? now.getFullYear();
+    const url = `${this.baseUrl}/attendances/calendar?month=${m}&year=${y}`;
+    return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
+      map((res) => {
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res?.data)) return res.data;
+        return [];
+      }),
+      catchError((err) => {
+        console.error('❌ getAttendanceCalendar error:', err);
+        return of([]);
+      })
+    );
+  }
+
+  formatLocalTime(date: string | null) {
+    if (!date) return null;
+    const d = new Date(date);
+    if (d.toString() === 'Invalid Date') return null;
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  // lokasi (Capacitor jika tersedia + fallback navigator)
+  async getCurrentLocation(): Promise<{ latitude: number; longitude: number; accuracy?: number }> {
+    try {
+      if (this.platform && this.platform.is && this.platform.is('hybrid')) {
+        await Geolocation.requestPermissions();
+        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
+        return { latitude: Number(pos.coords.latitude), longitude: Number(pos.coords.longitude), accuracy: pos.coords.accuracy };
+      }
+      return await new Promise((resolve, reject) => {
+        if (!('geolocation' in navigator)) return reject(new Error('Geolocation not supported'));
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+          (err) => reject(err),
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+      });
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  /** Ambil sensor kantor dari server (endpoint /sensor) — optional, tapi direkomendasikan */
+  async fetchSensorFromServer(): Promise<void> {
+    try {
+      const url = `${this.baseUrl}/sensor`;
+      const res: any = await firstValueFrom(this.http.get(url, { headers: this.getHeaders() }));
+      if (res) {
+        const lat = Number(res.office_lat ?? res.officeLat ?? 0);
+        const lng = Number(res.office_lng ?? res.officeLng ?? 0);
+        const radius = Number(res.office_radius ?? res.officeRadius ?? 0);
+        if (lat && lng) {
+          this.saveSensorSetting(lat, lng, radius);
+        }
+      }
+    } catch (e) {
+      // jangan fatal apabila gagal
+      console.warn('fetchSensorFromServer failed', e);
+    }
+  }
+
+  /** -----------------------------
+   *  SYNC PENDING LOCAL (lebih aman)
+   *  - skip entries yang diblokir (blockedUntil)
+   *  - jika server mengembalikan 403 maka entry diberi attempts++ dan blockedUntil (1 jam)
+   *  --------------------------- */
+  async syncPendingLocal(): Promise<void> {
+    try {
+      const pending: any[] = this.getPendingLocal() || [];
+      if (!Array.isArray(pending) || pending.length === 0) return;
+
+      console.log('[AttendanceService] syncPendingLocal: found', pending.length, 'entries');
+
+      // updateable pending array
+      for (const entry of [...pending]) {
+        // skip jika blockedUntil belum lewat
+        if (entry.blockedUntil && Number(entry.blockedUntil) > Date.now()) {
+          // console.log('[AttendanceService] syncPendingLocal: skipping blocked entry', entry.id);
+          continue;
+        }
+        // skip if attempts exceeded (safety)
+        if (entry.attempts && entry.attempts >= 5) {
+          // console.log('[AttendanceService] syncPendingLocal: skipping entry with many attempts', entry.id);
+          continue;
+        }
+
+        try {
+          if (entry.type === 'check-in') {
+            await firstValueFrom(this.createAttendance({
+              latitude: entry.latitude,
+              longitude: entry.longitude,
+              accuracy: entry.accuracy ?? undefined,
+              status: entry.status ?? 'Hadir',
+              timestamp: entry.timestamp ?? undefined,
+              month: entry.month ?? undefined,
+              year: entry.year ?? undefined,
+              user_id: entry.user_id ?? undefined,
+              forceUpload: true // biarkan server putuskan
+            }));
+            console.log('[AttendanceService] syncPendingLocal: uploaded check-in localId=', entry.id);
+            this.removePendingLocal(entry.type, entry.date);
+            this.notifyPresensiChanged();
+          } else {
+            // check-out
+            await firstValueFrom(this.updateAttendance({
+              id: entry.serverId ?? undefined, // jika ada serverId gunakan
+              latitude: entry.latitude,
+              longitude: entry.longitude,
+              accuracy: entry.accuracy ?? undefined,
+              status: entry.status ?? 'Hadir',
+              timestamp: entry.timestamp ?? undefined,
+              month: entry.month ?? undefined,
+              year: entry.year ?? undefined,
+              user_id: entry.user_id ?? undefined,
+              forceUpload: true
+            }));
+            console.log('[AttendanceService] syncPendingLocal: uploaded check-out localId=', entry.id);
+            this.removePendingLocal(entry.type, entry.date);
+            this.notifyPresensiChanged();
+          }
+        } catch (e: any) {
+          console.warn('[AttendanceService] syncPendingLocal: failed to upload localId=', entry.id, e);
+
+          // jika server menolak dengan 403: tandai blockedUntil (jangan retry terus-menerus)
+          const status = e?.status ?? e?.statusCode ?? (e?.error?.status ?? undefined);
+          if (status === 403) {
+            // increment attempts & set blockedUntil = now + 1 hour
+            this._markPendingFailed(entry.id, {
+              attempts: (entry.attempts ?? 0) + 1,
+              lastError: e?.error?.message ?? e?.message ?? 'Forbidden',
+              blockedUntil: Date.now() + 60 * 60 * 1000
+            });
+          } else {
+            // increment attempts but allow retry sooner (exponential backoff not implemented here)
+            this._markPendingFailed(entry.id, {
+              attempts: (entry.attempts ?? 0) + 1,
+              lastError: e?.error?.message ?? e?.message ?? 'Upload failed',
+              // small backoff 1 minute
+              blockedUntil: Date.now() + 60 * 1000
+            });
+          }
+          // don't throw — continue loop
+        }
+      }
+    } catch (err) {
+      console.error('[AttendanceService] syncPendingLocal error', err);
+      throw err;
+    }
+  }
+
+  // helper utk update entry pending dengan metadata
+  private _markPendingFailed(localId: number, meta: { attempts?: number; lastError?: string; blockedUntil?: number }) {
+    try {
+      const key = 'attendance_pending';
+      const data = JSON.parse(localStorage.getItem(key) || '[]');
+      const idx = data.findIndex((d: any) => d.id === localId);
+      if (idx >= 0) {
+        data[idx] = { ...data[idx], ...(meta) };
+        localStorage.setItem(key, JSON.stringify(data));
+      }
+    } catch (e) {
+      console.warn('Failed to mark pending failed', e);
+    }
+  }
+
+  /** 🟢 Check-In (record: any supaya bisa menerima accuracy + forceUpload) */
+  createAttendance(record: any): Observable<any> {
+    // jangan lakukan client-side radius check: biarkan server memutuskan
+    this.loadSensorSetting();
+
+    const ensureLocationThenSend = async () => {
+      let lat = Number(record.latitude ?? 0);
+      let lng = Number(record.longitude ?? 0);
+
+      if (!this.isLatLngValid(lat, lng)) {
+        try {
+          const loc = await this.getCurrentLocation();
+          lat = loc.latitude;
+          lng = loc.longitude;
+        } catch (err) {
+          console.warn('Could not get device location:', err);
+          // jika gagal ambil lokasi, tetap kirim 0,0 agar server bisa handle permintaan (atau tolak)
+        }
+      }
+
+      const url = `${this.baseUrl}/check-in`;
+      const formData = new FormData();
+      formData.append('latitude', String(lat));
+      formData.append('longitude', String(lng));
+      const userId = record.user_id ?? localStorage.getItem('user_id') ?? '';
+      if (userId) formData.append('user_id', String(userId));
+      formData.append('status', record.status ?? 'Hadir');
+
+      if (record.accuracy !== undefined && record.accuracy !== null) formData.append('accuracy', String(record.accuracy));
+      if (record.timestamp) formData.append('timestamp', String(record.timestamp));
+      if (record.month) formData.append('month', String(record.month));
+      if (record.year) formData.append('year', String(record.year));
+      // if forceUpload flag is set, inform backend optionally
+      if (record.forceUpload) formData.append('forceUpload', '1');
+
+      return this.http.post<any>(url, formData, { headers: this.getHeaders() }).pipe(
+        tap((res) => {
+          this.notifyPresensiChanged();
+          const date = this.getTodayDateString();
+          const jam = this.formatLocalTime(res?.data?.check_in ?? res?.data?.check_in ?? res?.check_in ?? null);
+          this.saveLocalTime(date, jam, null);
+          // remove pending yang cocok (defensive)
+          this.removePendingLocal('check-in', date);
+        }),
+        map((res) => res?.data ?? res),
+        catchError((err) => {
+          console.error('❌ createAttendance error:', err);
+          // Jika server menolak 403 karena radius, simpan pending (jika belum)
+        if (err?.status === 403) {
+          try {
+            const date = this.getTodayDateString();
+            const latSent = Number(formData.get('latitude') ?? 0);
+            const lngSent = Number(formData.get('longitude') ?? 0);
+            // kirim meta termasuk timestamp
+            this.savePendingLocal('check-in', latSent, lngSent, record.status ?? 'Hadir', date, {
+              attempts: (record.attempts ?? 0) + 1,
+              lastError: err?.error?.message ?? 'Forbidden',
+              blockedUntil: Date.now() + 60 * 60 * 1000,
+              timestamp: record.timestamp ? Number(record.timestamp) : Date.now(),
+              month: record.month ?? undefined,
+              year: record.year ?? undefined,
+              user_id: record.user_id ?? undefined
+            });
+          } catch (e) { /* ignore */ }
+        }
+
+          return throwError(() => err?.error?.message ? err : new Error(err?.error?.message || 'Gagal melakukan check-in.'));
+        })
+      );
+    };
+
+    return new Observable<any>((subscriber) => {
+      ensureLocationThenSend()
+        .then((obs: any) => {
+          obs.subscribe({
+            next: (v: any) => { subscriber.next(v); subscriber.complete(); },
+            error: (e: any) => subscriber.error(e)
+          });
+        })
+        .catch((e) => subscriber.error(e));
+    });
+  }
+
+  /** 🔴 Check-Out (payload: any, support forceUpload) */
+  updateAttendance(payload: any): Observable<any> {
+    this.loadSensorSetting();
+
+    const ensureLocationThenSend = async () => {
+      let lat = Number(payload.latitude ?? 0);
+      let lng = Number(payload.longitude ?? 0);
+
+      if (!this.isLatLngValid(lat, lng)) {
+        try {
+          const loc = await this.getCurrentLocation();
+          lat = loc.latitude;
+          lng = loc.longitude;
+        } catch (err) {
+          console.warn('Could not get device location (checkout):', err);
+        }
+      }
+
+      const url = `${this.baseUrl}/check-out`;
+      const formData = new FormData();
+      formData.append('latitude', String(lat));
+      formData.append('longitude', String(lng));
+      const userId = payload.user_id ?? localStorage.getItem('user_id') ?? '';
+      if (userId) formData.append('user_id', String(userId));
+      formData.append('status', payload.status ?? 'Hadir');
+
+      if (payload.accuracy !== undefined && payload.accuracy !== null) formData.append('accuracy', String(payload.accuracy));
+      if (payload.timestamp) formData.append('timestamp', String(payload.timestamp));
+      if (payload.month) formData.append('month', String(payload.month));
+      if (payload.year) formData.append('year', String(payload.year));
+      if (payload.forceUpload) formData.append('forceUpload', '1');
+
+      return this.http.post<any>(url, formData, { headers: this.getHeaders() }).pipe(
+        tap((res) => {
+          this.notifyPresensiChanged();
+          const date = this.getTodayDateString();
+          const jamOut = this.formatLocalTime(res?.data?.check_out ?? res?.check_out ?? null);
+          const local = this.getLocalTime(date);
+          const jamIn = local?.check_in || null;
+          this.saveLocalTime(date, jamIn, jamOut);
+          this.removePendingLocal('check-out', date);
+        }),
+        map((res) => res?.data ?? res),
+        catchError((err) => {
+          console.error('❌ updateAttendance error:', err);
+          if (err?.status === 403) {
+            try {
+              const date = this.getTodayDateString();
+              const latSent = Number(formData.get('latitude') ?? 0);
+              const lngSent = Number(formData.get('longitude') ?? 0);
+              this.savePendingLocal('check-out', latSent, lngSent, payload.status ?? 'Hadir', date, {
+                attempts: (payload.attempts ?? 0) + 1,
+                lastError: err?.error?.message ?? 'Forbidden',
+                blockedUntil: Date.now() + 60 * 60 * 1000
+              });
+            } catch (e) { /* ignore */ }
+          }
+          return throwError(() => err?.error?.message ? err : new Error(err?.error?.message || 'Gagal melakukan check-out.'));
+        })
+      );
+    };
+
+    return new Observable<any>((subscriber) => {
+      ensureLocationThenSend()
+        .then((obs: any) => {
+          obs.subscribe({
+            next: (v: any) => { subscriber.next(v); subscriber.complete(); },
+            error: (e: any) => subscriber.error(e)
+          });
+        })
+        .catch((e) => subscriber.error(e));
+    });
+  }
+
+  // penyimpanan jam di attendance.service.ts
+  saveLocalTime(date: string, checkin: string | null, checkout: string | null) {
+    const key = 'attendance_times';
+    const data = JSON.parse(localStorage.getItem(key) || '{}');
+    const normalize = (t: string | null) => {
+      if (!t) return null;
+      return t.includes('.') ? t.replace('.', ':') : t;
+    };
+    data[date] = { check_in: normalize(checkin), check_out: normalize(checkout) };
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  getLocalTime(date: string) {
+    const key = 'attendance_times';
+    const data = JSON.parse(localStorage.getItem(key) || '{}');
+    return data[date] || null;
+  }
+
+  // SENSOR / RADIUS
+  saveSensorSetting(lat: number, lng: number, radius: number) {
+    localStorage.setItem('office_lat', String(lat));
+    localStorage.setItem('office_lng', String(lng));
+    localStorage.setItem('office_radius', String(radius));
+    this.loadSensorSetting();
+  }
+
+  loadSensorSetting() {
+    this.officeLat = Number(localStorage.getItem('office_lat') ?? 0);
+    this.officeLng = Number(localStorage.getItem('office_lng') ?? 0);
+    this.officeRadius = Number(localStorage.getItem('office_radius') ?? 0);
+  }
+
+  isLatLngValid(lat: number, lng: number) {
+    if (!isFinite(lat) || !isFinite(lng)) return false;
+    if (lat === 0 && lng === 0) return false;
+    if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return false;
+    return true;
+  }
+
+  // note: frontend tidak melakukan check radius; backend yang memutuskan
+  isUserInsideRadius(userLat: number, userLng: number): boolean {
+    if (!this.officeLat || !this.officeLng || !this.officeRadius) {
+      return true;
+    }
+    if (!this.isLatLngValid(userLat, userLng)) return false;
+    if (Math.abs(userLat) > 90 && Math.abs(userLng) <= 90) {
+      const tmp = userLat; userLat = userLng; userLng = tmp;
+    }
+    const R = 6371e3;
+    const φ1 = this.officeLat * Math.PI/180;
+    const φ2 = userLat * Math.PI/180;
+    const Δφ = (userLat - this.officeLat) * Math.PI/180;
+    const Δλ = (userLng - this.officeLng) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return distance <= this.officeRadius;
+  }
+
+  // PENDING LOCAL (menyimpan metadata attempts/blockedUntil)
+// di attendance.service.ts — ubah fungsi savePendingLocal jadi seperti ini
+savePendingLocal(type: 'check-in' | 'check-out', lat: number, lng: number, status: string, date?: string, meta?: any) {
+  try {
+    const key = 'attendance_pending';
+    const data = JSON.parse(localStorage.getItem(key) || '[]');
+
+    // gunakan timestamp jika disertakan, atau sekarang
+    const timestamp = meta?.timestamp ?? Date.now();
+
+    const entry = {
+      id: meta?.id ?? Date.now(),
+      type,
+      date: date ?? this.getTodayDateString(),
+      latitude: lat,
+      longitude: lng,
+      status,
+      uploaded: false,
+      attempts: meta?.attempts ?? 0,
+      lastError: meta?.lastError ?? null,
+      blockedUntil: meta?.blockedUntil ?? null,
+      timestamp,
+      month: meta?.month ?? null,
+      year: meta?.year ?? null,
+      user_id: meta?.user_id ?? null,
+      serverId: meta?.serverId ?? null
+    };
+
+    // jika sudah ada same type+date -> update (jangan duplikat)
+    const existingIdx = data.findIndex((d: any) => d.type === entry.type && d.date === entry.date);
+    if (existingIdx >= 0) {
+      data[existingIdx] = { ...data[existingIdx], ...entry, id: data[existingIdx].id };
+    } else {
+      data.push(entry);
+    }
+
+    localStorage.setItem(key, JSON.stringify(data));
+    console.log('Saved pending attendance local:', entry);
+
+    // ---- tambahan: simpan waktu lokal sehingga UI menampilkan check-in/check-out sementara ----
+    try {
+      const dateKey = entry.date || this.getTodayDateString();
+      const timesKey = 'attendance_times';
+      const timesObj = JSON.parse(localStorage.getItem(timesKey) || '{}');
+
+      // gunakan waktu dari meta.timestamp jika ada, atau format sekarang ke jam lokal
+      const dt = new Date(entry.timestamp);
+      const hhmm = dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+      timesObj[dateKey] = timesObj[dateKey] || {};
+      if (entry.type === 'check-in') {
+        timesObj[dateKey].check_in = timesObj[dateKey].check_in ?? hhmm; // jangan overwrite confirmed
+      } else {
+        timesObj[dateKey].check_out = timesObj[dateKey].check_out ?? hhmm;
+      }
+      localStorage.setItem(timesKey, JSON.stringify(timesObj));
+      console.log('Saved local attendance_times for pending:', dateKey, timesObj[dateKey]);
+    } catch (e) {
+      console.warn('Failed to save attendance_times for pending entry', e);
+    }
+    // ---------------------------------------------------------------------------------------
+  } catch (e) {
+    console.warn('Failed to save pending attendance locally', e);
+  }
+}
+
+
+  removePendingLocal(type: 'check-in' | 'check-out', date: string) {
+    try {
+      const key = 'attendance_pending';
+      const data = JSON.parse(localStorage.getItem(key) || '[]');
+      const filtered = data.filter((d: any) => !(d.type === type && d.date === date));
+      localStorage.setItem(key, JSON.stringify(filtered));
+    } catch (e) { /* ignore */ }
+  }
+
+  getPendingLocal() {
+    const key = 'attendance_pending';
+    return JSON.parse(localStorage.getItem(key) || '[]');
+  }
+}

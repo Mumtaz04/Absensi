@@ -14,14 +14,14 @@ export const routes: Routes = [
       {
         path: 'presensi',
         loadComponent: () =>
-          import('../pages/presensi/presensi.page').then(
+          import('./presensi/presensi.page').then(
             (m) => m.PresensiPage
           ),
       },
       {
         path: 'riwayat-izin',
         loadComponent: () =>
-          import('./riwayat-izin/riwayat-izin.page').then(
+          import('../pages/riwayat-izin/riwayat-izin.page').then(
             (m) => m.RiwayatIzinPage
           ),
       },
@@ -35,7 +35,7 @@ export const routes: Routes = [
         path: 'akun',
         // ⚙️ jika profil kamu ada di folder pages/profil/
         loadComponent: () =>
-          import('../pages/profil/profil.page').then((m) => m.ProfilPage),
+          import('./profil/profil.page').then((m) => m.ProfilPage),
 
         // 🟡 kalau ternyata profil kamu masih di tab3, ganti dengan:
         // loadComponent: () =>

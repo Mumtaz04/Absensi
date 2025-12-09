@@ -10,13 +10,16 @@ import {
 import { IonicModule, ToastController, NavController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-pengajuan-izin',
   templateUrl: './pengajuan-izin.page.html',
   styleUrls: ['./pengajuan-izin.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule],
+  imports: [IonicModule, CommonModule, FormsModule, HttpClientModule],
 })
 export class PengajuanIzinPage implements OnInit, OnDestroy {
   alasan = '';
@@ -31,12 +34,15 @@ export class PengajuanIzinPage implements OnInit, OnDestroy {
   showSubmitNotice = false;
 
   selectedFileNames: string[] = [];
+  selectedFiles: File[] = [];
 
   minDate = '1950-01-01';
   maxDate = '2100-12-31';
 
   todayDay = '';
   todayDate = '';
+
+  loadingSubmit = false;
 
   private injectedMulai = false;
   private injectedSelesai = false;
@@ -49,7 +55,8 @@ export class PengajuanIzinPage implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toastCtrl: ToastController,
     private navCtrl: NavController,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -170,17 +177,16 @@ export class PengajuanIzinPage implements OnInit, OnDestroy {
     }
   }
 
-  // 🗓️ Otomatis tutup kalender setelah pilih tanggal
   onDateSelected(event: any, type: 'mulai' | 'selesai') {
     const val = event?.detail?.value;
     if (!val) return;
 
     if (type === 'mulai') {
       this.tanggalMulai = val;
-      this.showCalendarMulai = false; // ⬅️ tutup otomatis
+      this.showCalendarMulai = false;
     } else {
       this.tanggalSelesai = val;
-      this.showCalendarSelesai = false; // ⬅️ tutup otomatis
+      this.showCalendarSelesai = false;
     }
 
     this.cdr.detectChanges();
@@ -198,6 +204,7 @@ export class PengajuanIzinPage implements OnInit, OnDestroy {
     const input = ev.target as HTMLInputElement;
     if (input.files) {
       this.selectedFileNames = Array.from(input.files).map((f) => f.name);
+      this.selectedFiles = Array.from(input.files);
     }
   }
 
@@ -208,6 +215,9 @@ export class PengajuanIzinPage implements OnInit, OnDestroy {
     this.showSubmitNotice = false;
   }
 
+  /** Simpan ke localStorage lalu navigasi ke riwayat.
+   * Jika nanti punya backend, gantikan penyimpanan ini dengan POST ke API.
+   */
   async confirmSubmit() {
     this.showSubmitNotice = false;
     if (!this.alasan || !this.tanggalMulai || !this.tanggalSelesai) {
@@ -219,21 +229,54 @@ export class PengajuanIzinPage implements OnInit, OnDestroy {
       await t.present();
       return;
     }
-    const payload = {
+
+    const newIzin = {
+      id: 'local-' + Date.now(),
       alasan: this.alasan,
       deskripsi: this.deskripsi,
       dari: this.tanggalMulai,
       sampai: this.tanggalSelesai,
       durasiHari: this.durationInDays,
+      durasi: `${this.durationInDays} hari`,
       files: this.selectedFileNames,
+      status: 'Menunggu',
+      createdAt: new Date().toISOString(),
+      tanggal_tinjau: null
     };
-    console.log('✅ Pengajuan dikirim:', payload);
-    const toast = await this.toastCtrl.create({
-      message: 'Pengajuan izin berhasil diajukan!',
-      duration: 2000,
-      color: 'success',
-    });
-    await toast.present();
+
+    this.loadingSubmit = true;
+
+    try {
+      // Simpan ke localStorage (bisa diganti POST ke backend)
+      const raw = localStorage.getItem('izinList');
+      const arr = raw ? JSON.parse(raw) : [];
+      arr.unshift(newIzin); // taruh di depan
+      localStorage.setItem('izinList', JSON.stringify(arr));
+
+      // juga simpan single key agar halaman riwayat bisa mengambil via history.state
+      // (berguna jika ingin menampilkan animasi atau menyorot entry baru)
+      sessionStorage.setItem('lastCreatedIzin', JSON.stringify(newIzin));
+
+      const toast = await this.toastCtrl.create({
+        message: 'Pengajuan izin berhasil diajukan!',
+        duration: 1400,
+        color: 'success',
+      });
+      await toast.present();
+
+      // navigasi ke riwayat, kirim state juga sebagai cadangan
+      this.router.navigate(['/riwayat-izin'], { state: { newIzin } });
+    } catch (err) {
+      console.error('Gagal menyimpan lokal', err);
+      const t = await this.toastCtrl.create({
+        message: 'Gagal mengajukan izin. Silakan coba lagi.',
+        duration: 2500,
+        color: 'danger',
+      });
+      await t.present();
+    } finally {
+      this.loadingSubmit = false;
+    }
   }
 
   async onBackPressed() {

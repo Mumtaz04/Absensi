@@ -110,6 +110,22 @@ ion-content {
   transform: scale(0.98);
 }
 
+.forgot-password {
+  width: 100%;
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #007bff; /* warna biru sesuai Figma */
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
 /* 📱 Android (default) */
 @media (max-width: 767px) {
   .login-card {

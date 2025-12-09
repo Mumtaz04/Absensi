@@ -125,29 +125,31 @@ ion-header ion-buttons {
   }
 
   /* STATUS BACKGROUND OVERRIDE */
-  .table-row.terlambat .col {
-    background: #fff3c4 !important;
-  }
+/* ===== Status Row Background ===== */
+/* ===== Status Row Background ===== */
+.table-row.terlambat .col {
+  background: #ffe9a8 !important;
+}
 
-  .table-row.cuti .col {
-    background: #FF8A66 !important;
-  }
+.table-row.cuti .col {
+  background: #ffc7a4 !important;
+}
 
-  .table-row.alfa .col {
-    background: #afafaf !important;
-  }
+.table-row.alfa .col {
+  background: #b6b6b6 !important;
+}
 
-  .table-row.libur .col {
-    background: #737373 !important;
-    color: #fff !important;
-  }
+.table-row.libur .col {
+  background: #737373 !important;
+  color: white !important;
+}
 
-  /* Merge cells (Libur / Cuti) */
-  .table-row.merged .merge-left,
-  .table-row.merged .merge-right {
-    text-align: center;
-    border-right: none !important;
-  }
+/* Merge center */
+.table-row .merge-left, 
+.table-row .merge-right {
+  text-align: center;
+  border-right: none !important;
+}
 
 /* ===== Desktop center ===== */
 @media (min-width: 768px) {
