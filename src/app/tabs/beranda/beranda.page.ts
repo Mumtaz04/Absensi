@@ -41,16 +41,31 @@ export class BerandaPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // subscribe ke shared user state supaya foto & data otomatis sinkron
+    // 1) Jika UserService sudah punya user (mis. dari proses login sebelum navigasi),
+    //    gunakan itu segera agar UI tidak tampil kosong lalu menunggu.
+    const cached = this.userSvc.getCurrentUser();
+    if (cached) {
+      this.user = cached;
+      this.updatePhotoFromUser(cached);
+      try { this.cd.markForCheck(); } catch {}
+    }
+
+    // 2) Subscribe ke perubahan user untuk update realtime
     this.userSvc.user$
       .pipe(takeUntil(this.destroy$))
       .subscribe(u => {
-        this.user = u;
-        this.updatePhotoFromUser(u);
+        // only update if value present (avoid overwriting with null)
+        if (u) {
+          this.user = u;
+          this.updatePhotoFromUser(u);
+          try { this.cd.markForCheck(); } catch {}
+        }
       });
 
-    // kalau service masih kosong, load data dari API (init)
-    if (!this.userSvc.getCurrentUser()) {
+    // 3) Hanya load dari API jika benar-benar tidak ada user di service
+    //    atau tidak ada cached profile image (fallback).
+    const cachedProfileImage = localStorage.getItem('profileImageUrl');
+    if (!this.userSvc.getCurrentUser() && !cachedProfileImage) {
       this.loadUserData();
     }
 
@@ -139,8 +154,13 @@ export class BerandaPage implements OnInit, OnDestroy {
       next: (response: any) => {
         const fetched = response.data ?? response.user ?? response;
         // broadcast ke seluruh app lewat UserService
-        this.userSvc.setUser(fetched);
-        try { this.cd.markForCheck(); } catch {}
+        if (fetched) {
+          this.userSvc.setUser(fetched);
+          // also update local view immediately
+          this.user = fetched;
+          this.updatePhotoFromUser(fetched);
+          try { this.cd.markForCheck(); } catch {}
+        }
       },
       error: (err) => {
         console.error('❌ Gagal memuat data user:', err);
@@ -150,6 +170,7 @@ export class BerandaPage implements OnInit, OnDestroy {
 
   // ---------------- update photo helper (robust) ----------------
   private updatePhotoFromUser(u: AppUser | null) {
+    // Always use the provided user 'u' (avoid relying on this.user which may be stale)
     const raw = (u?.photo || u?.photo_url || '')?.toString().trim() ?? '';
     let finalUrl = 'assets/icon/default-profile.png';
 
@@ -159,11 +180,14 @@ export class BerandaPage implements OnInit, OnDestroy {
       } else if (/^https?:\/\//i.test(raw)) {
         finalUrl = this.addCacheBuster(raw);
       } else {
-      const photoPath = this.user?.photo || this.user?.photo_url || '';
-      const cleanPath = photoPath.replace(/^storage\//, '');
-      this.userPhotoUrl = `${this.apiUrl}/storage/${cleanPath}`;
-
+        // backend returned relative path like "photos/abc.jpg" or "storage/photos/abc.jpg"
+        const cleanPath = raw.replace(/^\/+/, '').replace(/^storage\//, '');
+        finalUrl = `${this.apiUrl.replace(/\/+$/, '')}/storage/${cleanPath}`;
       }
+    } else {
+      // try cached url from localStorage if present
+      const cached = localStorage.getItem('profileImageUrl');
+      if (cached) finalUrl = cached;
     }
 
     this.userPhotoUrl = finalUrl;
@@ -182,7 +206,6 @@ export class BerandaPage implements OnInit, OnDestroy {
     if (img.dataset['fallback'] === 'true') return;
     img.dataset['fallback'] = 'true';
 
-    // inline SVG fallback agar tidak menghasilkan request 404
     img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
       `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
          <rect width="100%" height="100%" fill="#eaeaea"/>

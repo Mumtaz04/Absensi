@@ -4,6 +4,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, NavController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { UserService } from '../../services/user.service';
+import { firstValueFrom } from 'rxjs';
+import { environment } from 'src/environments/environment'; // <-- PASTIKAN import ini ada
 
 @Component({
   selector: 'app-login',
@@ -21,49 +24,116 @@ export class LoginPage {
 
   constructor(
     private authService: AuthService,
+    private userService: UserService,
     private router: Router,
     private toastCtrl: ToastController,
-    private navCtrl: NavController   // <-- ✓ ini wajib
+    private navCtrl: NavController
   ) {}
 
   goToForgotPassword() {
-    this.navCtrl.navigateForward('/forgot-password'); // <-- sudah valid
+    this.navCtrl.navigateForward('/forgot-password');
   }
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
 
+  // ================== GANTI FUNSI login() DENGAN INI ==================
   async login() {
+    if (!this.email || !this.password) {
+      const t = await this.toastCtrl.create({ message: 'Masukkan email dan password', duration: 1500, color: 'warning' });
+      await t.present();
+      return;
+    }
+
     this.loading = true;
-    this.authService.login(this.email, this.password).subscribe({
-      next: async (res: any) => {
-        this.loading = false;
+    this.errorMessage = '';
 
-        const token = res.token ?? res.access_token ?? '';
+    // helper lokal: bangun absolute photo URL dari nilai server (relatif atau absolut)
+    const buildPhotoUrl = (raw: string | null | undefined) => {
+      if (!raw) return null;
+      const s = raw.toString().trim();
+      if (!s) return null;
+      if (/^https?:\/\//i.test(s)) return s; // sudah absolute
+      const base = (environment.apiUrl || '').replace(/\/+$/, '');
+      const clean = s.replace(/^\/+/, '').replace(/^storage\//, '');
+      // tambahkan cache buster supaya browser tidak pakai versi lama
+      return `${base}/storage/${clean}?t=${Date.now()}`;
+    };
+
+    try {
+      // 1) login
+      const res: any = await firstValueFrom(this.authService.login(this.email, this.password));
+
+      // 2) ambil token
+      const token = res?.token ?? res?.access_token ?? res?.data?.token ?? '';
+      if (!token) throw new Error('Token tidak diterima dari server.');
+
+      // 3) simpan token
+      if (typeof this.authService.saveToken === 'function') {
+        try { this.authService.saveToken(token); } catch { localStorage.setItem('token', token); }
+      } else {
         localStorage.setItem('token', token);
+      }
 
-        const toast = await this.toastCtrl.create({
-          message: 'Login berhasil!',
-          duration: 1500,
-          color: 'success',
-        });
-        toast.present();
+      // 4) ambil profile (pastikan getProfile mengirim Authorization header — interceptor direkomendasikan)
+      let rawProfile: any = null;
+      try {
+        rawProfile = await firstValueFrom(this.authService.getProfile());
+      } catch (profileErr) {
+        console.warn('Gagal ambil profile setelah login:', profileErr);
+      }
 
-        this.router.navigate(['/tabs/beranda']);
-      },
-      error: async (err: any) => {
-        this.loading = false;
-        console.error('Login gagal:', err);
-        this.errorMessage = 'Email atau password salah.';
+      // 5) normalisasi struktur profile
+      let profile: any = rawProfile ?? null;
+      if (profile) profile = profile.data ?? profile.user ?? profile;
 
-        const toast = await this.toastCtrl.create({
-          message: this.errorMessage,
-          duration: 2000,
-          color: 'danger',
-        });
-        toast.present();
-      },
-    });
+      // 6) set user & photo (jika ada) sehingga Beranda langsung dapat
+      if (profile) {
+        this.userService.setUser(profile);
+
+        // jika server memberikan photo (relatif/absolute) convert => absolute
+        const rawPhoto = profile.photo ?? profile.photo_url ?? null;
+        const photoUrl = buildPhotoUrl(rawPhoto);
+        if (photoUrl) {
+          try { localStorage.setItem('profileImageUrl', photoUrl); } catch(e) {}
+          try { this.userService.setPhoto(photoUrl); } catch(e) {}
+        } else {
+          // jika server tidak kirim foto di sini, cek apakah ada profileImageUrl yang tersisa di storage (dari upload sebelumnya)
+          const cached = localStorage.getItem('profileImageUrl');
+          if (cached) {
+            try { this.userService.setPhoto(cached); } catch(e) {}
+          }
+        }
+      } else {
+        // jika profile null, coba fallback: ada cached image?
+        const cached = localStorage.getItem('profileImageUrl');
+        if (cached) {
+          try { this.userService.setPhoto(cached); } catch(e) {}
+        }
+      }
+
+      // 7) navigasi
+      const toast = await this.toastCtrl.create({ message: 'Login berhasil!', duration: 1200, color: 'success' });
+      await toast.present();
+      await this.router.navigate(['/tabs/beranda'], { replaceUrl: true });
+
+    } catch (err: any) {
+      console.error('Login gagal:', err);
+
+      let message = 'Email atau password salah.';
+      if (err?.status === 422 && err?.error?.errors) {
+        const firstKey = Object.keys(err.error.errors)[0];
+        message = err.error.errors[firstKey][0];
+      } else if (err?.error?.message) message = err.error.message;
+      else if (err?.message) message = err.message;
+
+      this.errorMessage = message;
+      const toast = await this.toastCtrl.create({ message, duration: 2500, color: 'danger' });
+      await toast.present();
+    } finally {
+      this.loading = false;
+    }
   }
+  // ===================================================================
 }

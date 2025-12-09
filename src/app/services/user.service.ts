@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface AppUser {
   id?: number;
@@ -19,7 +19,13 @@ const STORAGE_KEY = 'app_user_v1';
   providedIn: 'root',
 })
 export class UserService {
-  private baseUrl = environment.apiUrl; // pastikan value ini sesuai (tanpa /api ganda)
+  /**
+   * environment.apiUrl seharusnya berisi base host, boleh dengan atau tanpa suffix '/api'.
+   * Contoh yang valid:
+   *  - http://127.0.0.1:8000
+   *  - https://api.example.com/api
+   */
+  private baseUrl = environment.apiUrl || '';
 
   // BehaviorSubject: komponen lain bisa subscribe untuk sinkronisasi
   private userSubject = new BehaviorSubject<AppUser | null>(this.loadFromStorage());
@@ -27,23 +33,51 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  // ---------------- API methods (tetap ada) ----------------
-  checkIn(data: any) {
-    const token = localStorage.getItem('token') ?? '';
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.post(`${this.baseUrl}/api/employee/check-in`, data, { headers });
+  // ---------------- Helpers ----------------
+  private buildUrl(path: string) {
+    // pastikan tidak terjadi double slash atau double "/api"
+    // path boleh dikirimkan dalam bentuk 'employee/check-in' atau '/employee/check-in'
+    // Jika baseUrl berakhir dengan '/api' dan path dimulai dengan 'api/', kita strip salah satu.
+    const trimmedBase = this.baseUrl.replace(/\/+$/, ''); // trim trailing slash(es)
+    let trimmedPath = path.replace(/^\/+/, ''); // trim leading slash(es)
+
+    // Jika base mengandung '/api' dan path dimulai dengan 'api/', hapus prefix path 'api/'
+    if (/\/api$/i.test(trimmedBase) && /^api\//i.test(trimmedPath)) {
+      trimmedPath = trimmedPath.replace(/^api\//i, '');
+    }
+
+    // Jika base tidak mengandung '/api' dan path dimulai dengan 'api/', biarkan (karena path eksplisit)
+    return `${trimmedBase}/${trimmedPath}`;
   }
 
-  checkOut(data: any) {
+  private authHeaders(): { headers: HttpHeaders } {
     const token = localStorage.getItem('token') ?? '';
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.post(`${this.baseUrl}/api/employee/check-out`, data, { headers });
+    const headers = new HttpHeaders({
+      Authorization: token ? `Bearer ${token}` : '',
+    });
+    return { headers };
   }
 
-  updateProfilePhoto(formData: FormData) {
-    const token = localStorage.getItem('token') ?? '';
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.http.post<any>(`${this.baseUrl}/api/user/photo`, formData, { headers });
+  // ---------------- API methods ----------------
+  // semua method mengembalikan Observable sehingga caller bisa subscribe / firstValueFrom
+
+  checkIn(data: any): Observable<any> {
+    return this.http.post(this.buildUrl('api/employee/check-in'), data, this.authHeaders());
+  }
+
+  checkOut(data: any): Observable<any> {
+    return this.http.post(this.buildUrl('api/employee/check-out'), data, this.authHeaders());
+  }
+
+  /**
+   * Upload foto profil
+   * - formData disiapkan oleh caller (nama field tidak diubah)
+   * - endpoint disesuaikan: gunakan path relatif, helper buildUrl menangani base
+   */
+  updateProfilePhoto(formData: FormData): Observable<any> {
+    // Perhatikan: beberapa backend mengharapkan 'multipart/form-data' tanpa header Content-Type eksplisit
+    // (HttpClient akan mengatur boundary otomatis). Jadi kita hanya menyertakan Authorization header.
+    return this.http.post<any>(this.buildUrl('api/user/photo'), formData, this.authHeaders());
   }
 
   // ---------------- Shared state helpers ----------------
@@ -81,14 +115,18 @@ export class UserService {
     try {
       if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
       else localStorage.removeItem(STORAGE_KEY);
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      // ignore storage errors
+      console.warn('UserService.saveToStorage error', e);
+    }
   }
 
   private loadFromStorage(): AppUser | null {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : null;
-    } catch {
+    } catch (e) {
+      console.warn('UserService.loadFromStorage error', e);
       return null;
     }
   }
