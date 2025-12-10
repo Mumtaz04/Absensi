@@ -55,10 +55,20 @@ export class LoginPage {
       const s = raw.toString().trim();
       if (!s) return null;
       if (/^https?:\/\//i.test(s)) return s; // sudah absolute
+
+      // normalisasi: jika server mengirim "api/storage/..." atau "/api/storage/..." -> ubah ke "storage/..."
+      let clean = s.replace(/^\/+/, ''); // hilangkan leading slash
+
+      // jika server hanya mengirim "photos/xxx.jpg", ubah ke "storage/photos/xxx.jpg"
+      if (/^photos\//i.test(clean)) {
+        clean = clean.replace(/^photos\//i, 'storage/photos/');
+      }
+
+      clean = clean.replace(/^api\/storage\//i, 'storage/'); // hapus "api/storage/" jika ada
+      clean = clean.replace(/^storage\//i, 'storage/'); // pastikan format storage/...
+
       const base = (environment.apiUrl || '').replace(/\/+$/, '');
-      const clean = s.replace(/^\/+/, '').replace(/^storage\//, '');
-      // tambahkan cache buster supaya browser tidak pakai versi lama
-      return `${base}/storage/${clean}?t=${Date.now()}`;
+      return `${base}/${clean}?t=${Date.now()}`;
     };
 
     try {

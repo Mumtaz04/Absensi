@@ -88,8 +88,60 @@ export class UserService {
   }
 
   // update hanya foto (dipanggil setelah upload sukses)
-  setPhoto(photoPathOrUrl: string | null) {
-    const current = { ...(this.userSubject.value ?? {}) } as AppUser;
+// di src/app/services/user.service.ts — ganti setPhoto dengan ini
+setPhoto(photoPathOrUrl: string | null) {
+  const current = { ...(this.userSubject.value ?? {}) } as AppUser;
+
+  // helper lokal untuk normalisasi
+  const normalize = (p: string) => {
+    if (!p) return null;
+    const s = p.toString().trim();
+    if (!s) return null;
+    // data URI / blob -> return as-is
+    if (/^data:|^blob:/.test(s)) return s;
+    // jika http(s) absolut -> perbaiki /api/storage -> /storage
+    if (/^https?:\/\//i.test(s)) {
+      return s.replace(/\/api\/storage\//i, '/storage/');
+    }
+    // kalau relatif seperti "photos/..." atau "storage/photos/..." -> prefix baseUrl
+    let clean = s.replace(/^\/+/, '');
+    // jika mulai dengan 'photos/' -> gunakan storage/photos/
+    if (/^photos\//i.test(clean)) {
+      clean = clean.replace(/^photos\//i, 'storage/photos/');
+    }
+    // jika path dimulai dengan 'api/storage/' -> ubah ke storage/
+    clean = clean.replace(/^api\/storage\//i, 'storage/');
+    // jika sudah 'storage/...' biarkan; sekarang gabungkan dengan base
+    const base = this.baseUrl.replace(/\/+$/, '');
+    return `${base}/${clean}`;
+  };
+
+  try {
+    if (photoPathOrUrl) {
+      const normalized = normalize(photoPathOrUrl);
+      if (normalized) {
+        current.photo = normalized;
+        current.photo_url = normalized;
+        // simpan ke storage: jika data URI simpan ke profileImageBase64, else ke profileImageUrl
+        if (/^data:/.test(normalized)) {
+          localStorage.setItem('profileImageBase64', normalized);
+          localStorage.removeItem('profileImageUrl');
+        } else {
+          localStorage.setItem('profileImageUrl', normalized);
+          localStorage.removeItem('profileImageBase64');
+        }
+      } else {
+        // fallback: simpan original raw
+        current.photo = photoPathOrUrl;
+        current.photo_url = photoPathOrUrl;
+      }
+    } else {
+      delete current.photo;
+      delete current.photo_url;
+      try { localStorage.removeItem('profileImageUrl'); localStorage.removeItem('profileImageBase64'); } catch(e) {}
+    }
+  } catch (e) {
+    // jika ada error, tetap lanjutkan dengan raw value
     if (photoPathOrUrl) {
       current.photo = photoPathOrUrl;
       current.photo_url = photoPathOrUrl;
@@ -97,9 +149,12 @@ export class UserService {
       delete current.photo;
       delete current.photo_url;
     }
-    this.userSubject.next(current);
-    this.saveToStorage(current);
   }
+
+  this.userSubject.next(current);
+  this.saveToStorage(current);
+}
+
 
   getCurrentUser(): AppUser | null {
     return this.userSubject.value;
@@ -108,6 +163,10 @@ export class UserService {
   clear() {
     this.userSubject.next(null);
     localStorage.removeItem(STORAGE_KEY);
+    try {
+      localStorage.removeItem('profileImageUrl');
+      localStorage.removeItem('profileImageBase64');
+    } catch (e) {}
   }
 
   // ---------------- persistence ----------------

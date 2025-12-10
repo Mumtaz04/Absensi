@@ -46,7 +46,7 @@ export class ProfilPage implements OnInit {
     private platform: Platform,
     private navCtrl: NavController,
     private cd: ChangeDetectorRef,
-    private userSvc: UserService
+    private userSvc: UserService,
   ) {}
 
   private buildPhotoUrl(raw: string | null | undefined): string | null {
