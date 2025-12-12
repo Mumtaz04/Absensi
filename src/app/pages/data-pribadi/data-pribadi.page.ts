@@ -1,20 +1,34 @@
-import { Component, OnInit } from '@angular/core';
+// import { Component } from '@angular/core';
+// import { ProfileService } from '../../services/profile.service';
+// import { ToastController } from '@ionic/angular';
+
+// @Component({
+//   selector: 'app-data-pribadi',
+//   templateUrl: './data-pribadi.page.html'
+// })
+// export class DataPribadiPage {
+//   address = '';
+//   token = ''; // ambil dari storage/session sesuai implementasimu
+// src/app/pages/data-pribadi/data-pribadi.page.ts
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton } from '@ionic/angular/standalone';
+import { IonicModule } from '@ionic/angular';
 
 @Component({
   selector: 'app-data-pribadi',
   templateUrl: './data-pribadi.page.html',
   styleUrls: ['./data-pribadi.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButtons, IonBackButton]
+  imports: [CommonModule, FormsModule, IonicModule]
 })
-export class DataPribadiPage implements OnInit {
+export class DataPribadiPage {
+  user = {
+    name: 'Mumtaz',
+    email: 'mail@email.com',
+    position: 'Karyawan',
+    status: 'Aktif'
+  };
 
-  constructor() { }
-
-  ngOnInit() {
-  }
-
+  constructor() {}
 }

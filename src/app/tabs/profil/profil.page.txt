@@ -1,0 +1,1789 @@
+<ion-header class="no-border">
+  <ion-toolbar color="success" class="profile-toolbar">
+    <ion-title class="profile-title">Profil Saya</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="profil-content">
+
+  <div class="profile-header"></div>
+
+  <input #fileInput type="file" accept="image/*" style="display:none" (change)="onFileSelected($event)">
+
+  <div class="profile-photo-wrapper" (click)="openImage()" role="button" aria-label="Lihat foto profil">
+    <img [src]="profileImage" alt="Profile" class="profile-img" />
+
+    <button type="button" class="photo-edit-btn" (click)="openPhotoChooser($event)" title="Ubah Foto Profil" aria-label="Ubah Foto Profil">
+      <ion-icon name="pencil" class="photo-edit-icon"></ion-icon>
+    </button>
+  </div>
+
+  <div class="profile-identity">
+    <h2 class="profile-name">{{ user?.name}}</h2>
+    <p class="profile-position">{{ user?.position || 'Karyawan' }}</p>
+    <div class="status-badge">
+      <ion-icon name="ellipse" class="dot"></ion-icon>
+      <span>Aktif</span>
+    </div>
+  </div>
+
+  <div class="profile-section">
+    <h3 class="section-title">
+      Informasi Personal
+
+      <!-- tombol edit: jika editMode true tampilkan "SELESAI", else icon pensil -->
+      <button class="edit-btn" [class.active]="editMode" (click)="toggleEdit()">
+        <ion-icon *ngIf="!editMode" class="edit-icon" name="pencil-outline"></ion-icon>
+        <span class="edit-text">{{ editMode ? 'SELESAI' : '' }}</span>
+      </button>
+    </h3>
+
+    <div class="info-card" [class.disabled]="editMode">
+      <div class="info-icon-box">
+        <ion-icon name="mail-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Email</span>
+        <span class="info-value">{{ user?.email }}</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon-box">
+        <ion-icon name="briefcase-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Jabatan</span>
+        <span class="info-value">{{ user?.position || 'Karyawan' }}</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon-box">
+        <ion-icon name="call-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Nomor Telepon</span>
+
+        <ion-input
+          *ngIf="editMode"
+          [(ngModel)]="editPhone"
+          type="tel"
+          class="edit-input"
+          placeholder="Masukkan nomor telepon">
+        </ion-input>
+
+        <span class="info-value" *ngIf="!editMode">
+          {{ user?.phone || '-' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon-box">
+        <ion-icon name="calendar-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Tanggal Bergabung</span>
+        <span class="info-value">{{ user?.created_at | date: 'dd MMMM yyyy' }}</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon-box">
+        <ion-icon name="location-outline" class="info-icon"></ion-icon>
+      </div>
+      <div class="info-detail">
+        <span class="info-label">Alamat</span>
+
+        <ion-textarea
+          *ngIf="editMode"
+          [(ngModel)]="editAddress"
+          auto-grow="true"
+          class="edit-input"
+          placeholder="Masukkan alamat lengkap">
+        </ion-textarea>
+
+        <span class="info-value" *ngIf="!editMode">
+          {{ user?.address || 'Belum diisi' }}
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <ion-button expand="block" fill="outline" color="danger" class="logout-btn" (click)="logout()">
+    <ion-icon slot="start" name="log-out-outline"></ion-icon>
+    Logout
+  </ion-button>
+
+  <ion-modal [isOpen]="showImage" (didDismiss)="closeImage()" cssClass="image-modal">
+    <ng-template>
+      <div class="modal-content" (click)="closeImage()">
+        <img [src]="profileImage" alt="Zoom Profile" class="zoom-img circle" />
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <ion-footer class="bottom-footer" translucent>
+    <ion-toolbar>
+      <div class="footer-nav">
+        <button class="nav-btn" routerLink="/tabs/beranda">
+          <ion-icon name="home-outline"></ion-icon>
+        </button>
+        <button class="nav-btn" routerLink="/tabs/riwayat-izin">
+          <ion-icon name="time-outline"></ion-icon>
+        </button>
+        <button class="nav-btn active" routerLink="/tabs/akun">
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </button>
+      </div>
+    </ion-toolbar>
+  </ion-footer>
+
+</ion-content>
+
+
+// profil.page.ts 
+  async saveProfile() {
+    if (this.saving) return;
+    this.saving = true;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token tidak ditemukan; tidak dapat menyimpan profil.');
+      this.saving = false;
+      return;
+    }
+
+    const payload: any = {
+      phone: this.editPhone ?? '',
+      address: this.editAddress ?? ''
+    };
+
+    console.log('Payload sebelum dikirim (try PATCH/PUT/POST):', payload);
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+
+    const attempt = async (method: 'patch' | 'put' | 'post') => {
+      try {
+        if (method === 'patch') {
+          return await lastValueFrom(this.http.patch(this.PROFILE_URL, payload, { headers }));
+        } else if (method === 'put') {
+          return await lastValueFrom(this.http.put(this.PROFILE_URL, payload, { headers }));
+        } else {
+          return await lastValueFrom(this.http.post(this.PROFILE_URL, payload, { headers }));
+        }
+      } catch (err: any) {
+        // rethrow so caller can inspect err.status
+        throw err;
+      }
+    };
+
+    try {
+      // 1) try PATCH
+      try {
+        const resp: any = await attempt('patch');
+        await this.handleProfileUpdateResponse(resp);
+        return;
+      } catch (err: any) {
+        console.warn('PATCH failed:', err?.status ?? err);
+        // if 405 then try next method, otherwise rethrow
+        if (err?.status && err.status !== 405) throw err;
+      }
+
+      // 2) try PUT
+      try {
+        const resp: any = await attempt('put');
+        await this.handleProfileUpdateResponse(resp);
+        return;
+      } catch (err: any) {
+        console.warn('PUT failed:', err?.status ?? err);
+        if (err?.status && err.status !== 405) throw err;
+      }
+
+      // 3) try POST (last fallback)
+      try {
+        const resp: any = await attempt('post');
+        await this.handleProfileUpdateResponse(resp);
+        return;
+      } catch (err: any) {
+        console.warn('POST failed:', err?.status ?? err);
+        throw err; // all attempts failed
+      }
+
+    } catch (err: any) {
+      console.error('Gagal menyimpan profil setelah mencoba beberapa metode:', err);
+      const toast = await this.toastCtrl.create({ message: 'Gagal menyimpan profil. Periksa koneksi / endpoint.', duration: 2500, color: 'danger' });
+      await toast.present();
+      // tetap di editMode supaya user bisa koreksi
+    } finally {
+      this.saving = false;
+      try { this.cd.markForCheck(); } catch (e) {}
+    }
+  }
+
+
+//
+// src/app/pages/profil/profil.page.ts
+import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule, NavController, Platform, ToastController } from '@ionic/angular';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ChangeDetectorRef } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
+
+import { UserService } from '../../services/user.service';
+
+@Component({
+  selector: 'app-profil',
+  templateUrl: './profil.page.html',
+  styleUrls: ['./profil.page.scss'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, IonicModule]
+})
+export class ProfilPage implements OnInit {
+  @ViewChild('fileInput', { static: false }) fileInput?: ElementRef<HTMLInputElement>;
+
+  user: any = {
+    name: 'mumtaz',
+    email: 'mumtaz@example.com',
+    position: 'Staff IT',
+    phone: '+628192323950',
+    address: 'Jl. Klipang Grenn. no 50 Semarang',
+    created_at: new Date()
+  };
+
+  editPhone = '';
+  editAddress = '';
+
+  profileImage = 'assets/icon/asus.jpg';
+  previewUrl: string | null = null;
+  selectedFile: File | null = null;
+
+  private readonly BACKEND_BASE = 'http://127.0.0.1:8000';
+  private readonly PROFILE_URL = `${this.BACKEND_BASE}/api/employee/profile`;
+
+  showImage = false;
+  editMode = false;
+  saving = false;
+
+  constructor(
+    private http: HttpClient,
+    private platform: Platform,
+    private navCtrl: NavController,
+    private cd: ChangeDetectorRef,
+    private userSvc: UserService,
+    private toastCtrl: ToastController
+  ) {}
+
+  private buildPhotoUrl(raw: string | null | undefined): string | null {
+    if (!raw) return null;
+    const s = raw.toString().trim();
+    if (!s) return null;
+    if (/^https?:\/\//i.test(s)) return s;
+    const base = (this.BACKEND_BASE || '').replace(/\/+$/, '');
+    const clean = s.replace(/^\/+/, '').replace(/^storage\//, '');
+    return `${base}/storage/${clean}`;
+  }
+
+  ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  ionViewWillEnter(): void {
+    this.loadProfile();
+  }
+
+  private async urlExists(url: string): Promise<boolean> {
+    try {
+      const resp = await fetch(url, { method: 'HEAD', mode: 'cors' });
+      return resp.ok;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  loadProfile() {
+    const token = localStorage.getItem('token');
+    console.log('DEBUG: token ->', token);
+    if (!token) {
+      const saved = localStorage.getItem('profileImageBase64');
+      if (saved) this.profileImage = saved;
+      // also try load user from localStorage if available
+      const savedUser = localStorage.getItem('app_user_v1');
+      if (savedUser) {
+        try {
+          this.user = JSON.parse(savedUser);
+        } catch (e) { /* ignore parse error */ }
+      }
+      // ensure edit form values populated
+      this.editPhone = this.user.phone ?? '';
+      this.editAddress = this.user.address ?? '';
+      return;
+    }
+
+    const headers = this.getJsonHeaders();
+
+    this.http.get(this.PROFILE_URL, { headers }).subscribe({
+      next: async (res: any) => {
+        const data = res.data ?? res.user ?? res;
+        if (!data) {
+          const saved = localStorage.getItem('profileImageBase64');
+          if (saved) this.profileImage = saved;
+          return;
+        }
+
+        // update local user and broadcast to app
+        this.user = { ...this.user, ...data };
+        try { this.userSvc.setUser(this.user); } catch (e) { /* ignore */ }
+
+        const candidateFromServer = this.buildPhotoUrl(data.photo ?? data.photo_url ?? res.photo_url ?? null);
+        console.log('DBG loadProfile candidateFromServer:', candidateFromServer);
+
+        if (candidateFromServer) {
+          this.profileImage = candidateFromServer;
+          try { localStorage.setItem('profileImageUrl', candidateFromServer); } catch(e) {}
+          try { this.userSvc.setPhoto(candidateFromServer); } catch (e) {}
+        } else {
+          const savedBase64 = localStorage.getItem('profileImageBase64');
+          this.profileImage = savedBase64 ?? 'assets/icon/asus.jpg';
+        }
+
+        // prefilling edit form fields (important)
+        this.editPhone = this.user.phone ?? '';
+        this.editAddress = this.user.address ?? '';
+
+        // persist user snapshot in localStorage so UI elsewhere can use it
+        try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch(e){}
+
+        try { this.cd.markForCheck(); } catch (e) { /* ignore */ }
+      },
+      error: (err) => {
+        console.error('Gagal memuat profil (GET):', err);
+        const saved = localStorage.getItem('profileImageBase64');
+        if (saved) this.profileImage = saved;
+      }
+    });
+  }
+
+  openImage() { this.showImage = true; }
+  closeImage() { this.showImage = false; }
+
+  /**
+   * toggleEdit:
+   * - jika belum edit -> aktifkan editMode dan pastikan form ter-fill
+   * - jika sedang edit -> lakukan saveProfile() lalu non-aktifkan editMode bila sukses
+   */
+  async toggleEdit() {
+    if (!this.editMode) {
+      // masuk ke mode edit: pastikan nilai form diisi dari this.user
+      this.editMode = true;
+      this.editPhone = this.user.phone ?? '';
+      this.editAddress = this.user.address ?? '';
+      return;
+    }
+
+    // dari editMode -> klik Selesai: panggil save lalu tutup editMode bila sukses
+    await this.saveProfile();
+  }
+
+  logout() {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('profileImageUrl');
+      localStorage.removeItem('profileImageBase64');
+    } catch (e) {
+      console.warn('Gagal membersihkan localStorage:', e);
+    }
+
+    try { this.userSvc.setUser(null); } catch (e) { /* ignore */ }
+    try { this.userSvc.setPhoto(null); } catch (e) { /* ignore */ }
+
+    this.navCtrl.navigateRoot('/login');
+  }
+
+  // FILE CHOOSER & UPLOAD (tidak diubah)
+  openPhotoChooser(event?: Event) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
+    if (!this.fileInput) {
+      console.warn('fileInput tidak tersedia; pastikan <input #fileInput ...> ada di html.' );
+      return;
+    }
+    try { this.fileInput.nativeElement.click(); } catch (e) { console.error(e); }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input?.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.selectedFile = file;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.previewUrl = e.target.result;
+      this.profileImage = this.previewUrl || this.profileImage;
+      try {
+        if (this.previewUrl) localStorage.setItem('profileImageBase64', this.previewUrl);
+      } catch (e) {
+        console.warn('Gagal menyimpan preview ke localStorage', e);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    this.uploadImage();
+  }
+
+  async uploadImage() {
+    if (!this.selectedFile) {
+      console.warn('Tidak ada file untuk diupload.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token tidak ditemukan; user mungkin belum login.');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('photo', this.selectedFile, this.selectedFile.name);
+
+    try {
+      // 1) Kirim FormData (photo)
+      const resp: any = await lastValueFrom(
+        this.http.post(this.PROFILE_URL, fd, { headers: this.getFormHeaders(), observe: 'response' as any })
+      );
+
+      // Proses response upload photo seperti implementasimu semula
+      const body = resp.body ?? resp;
+      // update profileImage jika ada photo_url atau user.photo
+      if (body.photo_url || body.user?.photo || body.photo) {
+        const candidate = this.buildPhotoUrl(body.photo_url ?? body.user?.photo ?? body.photo);
+        if (candidate) {
+          this.profileImage = candidate;
+          try { localStorage.setItem('profileImageUrl', candidate); } catch(e) {}
+          try { this.userSvc.setPhoto(candidate); } catch (e) {}
+        }
+        if (body.user) {
+  this.user = { ...this.user, ...body.user };
+
+  try { 
+    localStorage.setItem('app_user_v1', JSON.stringify(this.user)); 
+  } catch (e) {}
+
+  try { 
+    this.userSvc.setUser(this.user); 
+  } catch (e) {}
+
+  try { 
+    this.cd.markForCheck(); 
+  } catch (e) {}
+}
+
+      } else {
+        // fallback: reload profile
+        await this.loadProfile();
+      }
+
+      // Kosongkan selectedFile & preview
+      this.selectedFile = null;
+      this.previewUrl = null;
+      try { this.cd.markForCheck(); } catch (e) {}
+
+      // 2) Setelah upload foto sukses, kirim FormData kedua untuk memastikan backend menyimpan phone & address
+      const fd2 = new FormData();
+      fd2.append('phone', this.editPhone ?? (this.user?.phone ?? ''));
+      fd2.append('address', this.editAddress ?? (this.user?.address ?? ''));
+
+      try {
+        const resp2: any = await lastValueFrom(
+          this.http.post(this.PROFILE_URL, fd2, { headers: this.getFormHeaders() })
+        );
+
+        // update local user dari response kedua jika ada
+        const updated = resp2.user ?? resp2.data ?? resp2;
+        if (updated) {
+          this.user = { ...this.user, ...updated };
+          try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch (e) {}
+          try { this.userSvc.setUser(this.user); } catch (e) {}
+        }
+
+      } catch (err2) {
+        console.warn('POST FormData kedua gagal:', err2);
+        // Kita tidak langsung gagal total — foto sudah terupload. Tampilkan toast jika perlu.
+      }
+
+    } catch (err: any) {
+      console.error('Upload gagal (POST FormData):', err);
+      const toast = await this.toastCtrl.create({ message: 'Upload foto gagal. Periksa koneksi.', duration: 2500, color: 'danger' });
+      await toast.present();
+    }
+  }
+
+  /** saveProfile - kirim sebagai FormData agar backend yang menerima FormData juga menangkap field text */
+  async saveProfile() {
+    if (this.saving) return;
+    this.saving = true;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token tidak ditemukan; tidak dapat menyimpan profil.');
+      this.saving = false;
+      return;
+    }
+
+    // Buat FormData (meskipun tidak ada file)
+    const fd = new FormData();
+    fd.append('phone', this.editPhone ?? '');
+    fd.append('address', this.editAddress ?? '');
+
+    console.log('FormData sebelum dikirim (saveProfile):', {
+      phone: this.editPhone,
+      address: this.editAddress
+    });
+
+    try {
+      const resp: any = await lastValueFrom(
+        this.http.post(this.PROFILE_URL, fd, { headers: this.getFormHeaders() })
+      );
+
+      // proses response menggunakan handler bawaan
+      await this.handleProfileUpdateResponse(resp);
+      return;
+    } catch (err: any) {
+      console.error('POST FormData /api/employee/profile gagal:', err);
+      const toast = await this.toastCtrl.create({
+        message: (err?.error?.message) ? `Gagal: ${err.error.message}` : 'Gagal menyimpan profil. Periksa koneksi / endpoint.',
+        duration: 2500,
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.saving = false;
+      try { this.cd.markForCheck(); } catch (e) {}
+    }
+  }
+
+
+  private getJsonHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+  }
+
+  private getFormHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    // Note: do NOT set Content-Type for FormData, HttpClient will set boundary automatically.
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+  }
+
+  // helper kecil untuk memproses response (pakai function yang sudah ada sebelumnya)
+private async handleProfileUpdateResponse(resp: any) {
+  console.log('Response update profile:', resp);
+  const updatedUser = resp.user ?? resp.data ?? resp;
+
+  this.user = { ...this.user, ...updatedUser };
+
+  try {
+    const existingRaw = localStorage.getItem('app_user_v1');
+    let merged = this.user;
+    if (existingRaw) {
+      try {
+        const existing = JSON.parse(existingRaw);
+        merged = { ...existing, ...this.user };
+      } catch (e) { merged = this.user; }
+    }
+    localStorage.setItem('app_user_v1', JSON.stringify(merged));
+  } catch (e) {
+    console.warn('Gagal update localStorage app_user_v1', e);
+  }
+
+  try { this.userSvc.setUser(this.user); } catch (e) { /* ignore */ }
+
+  // <-- tambahkan ini supaya UI segera ter-refresh
+  try { this.cd.markForCheck(); } catch(e){ /* ignore */ }
+
+  const toast = await this.toastCtrl.create({ message: 'Profil berhasil diperbarui', duration: 1500, color: 'success' });
+  await toast.present();
+
+  this.editMode = false;
+}
+}
+
+// profile.page.ts -2
+// src/app/pages/profil/profil.page.ts
+import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule, NavController, Platform, ToastController } from '@ionic/angular';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ChangeDetectorRef } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
+
+import { UserService } from '../../services/user.service';
+
+@Component({
+  selector: 'app-profil',
+  templateUrl: './profil.page.html',
+  styleUrls: ['./profil.page.scss'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, IonicModule]
+})
+export class ProfilPage implements OnInit {
+  @ViewChild('fileInput', { static: false }) fileInput?: ElementRef<HTMLInputElement>;
+
+  user: any = {
+    name: 'mumtaz',
+    email: 'mumtaz@example.com',
+    position: 'Staff IT',
+    phone: '+628192323950',
+    address: 'Jl. Klipang Grenn. no 50 Semarang',
+    created_at: new Date()
+  };
+
+  editPhone = '';
+  editAddress = '';
+
+  profileImage = 'assets/icon/asus.jpg';
+  previewUrl: string | null = null;
+  selectedFile: File | null = null;
+
+  private readonly BACKEND_BASE = 'http://127.0.0.1:8000';
+  private readonly PROFILE_URL = `${this.BACKEND_BASE}/api/employee/profile`;
+
+  showImage = false;
+  editMode = false;
+  saving = false;
+
+  constructor(
+    private http: HttpClient,
+    private platform: Platform,
+    private navCtrl: NavController,
+    private cd: ChangeDetectorRef,
+    private userSvc: UserService,
+    private toastCtrl: ToastController
+  ) {}
+
+  private buildPhotoUrl(raw: string | null | undefined): string | null {
+    if (!raw) return null;
+    const s = raw.toString().trim();
+    if (!s) return null;
+    if (/^https?:\/\//i.test(s)) return s;
+    const base = (this.BACKEND_BASE || '').replace(/\/+$/, '');
+    const clean = s.replace(/^\/+/, '').replace(/^storage\//, '');
+    return `${base}/storage/${clean}`;
+  }
+
+  ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  ionViewWillEnter(): void {
+    this.loadProfile();
+  }
+
+  private async urlExists(url: string): Promise<boolean> {
+    try {
+      const resp = await fetch(url, { method: 'HEAD', mode: 'cors' });
+      return resp.ok;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  loadProfile() {
+    const token = localStorage.getItem('token');
+    console.log('DEBUG: token ->', token);
+    if (!token) {
+      const saved = localStorage.getItem('profileImageBase64');
+      if (saved) this.profileImage = saved;
+      // also try load user from localStorage if available
+      const savedUser = localStorage.getItem('app_user_v1');
+      if (savedUser) {
+        try {
+          this.user = JSON.parse(savedUser);
+        } catch (e) { /* ignore parse error */ }
+      }
+      // ensure edit form values populated
+      this.editPhone = this.user.phone ?? '';
+      this.editAddress = this.user.address ?? '';
+      return;
+    }
+
+    const headers = this.getJsonHeaders();
+
+    this.http.get(this.PROFILE_URL, { headers }).subscribe({
+      next: async (res: any) => {
+        const data = res.data ?? res.user ?? res;
+        if (!data) {
+          const saved = localStorage.getItem('profileImageBase64');
+          if (saved) this.profileImage = saved;
+          return;
+        }
+
+        // update local user and broadcast to app
+        this.user = { ...this.user, ...data };
+        try { this.userSvc.setUser(this.user); } catch (e) { /* ignore */ }
+
+        const candidateFromServer = this.buildPhotoUrl(data.photo ?? data.photo_url ?? res.photo_url ?? null);
+        console.log('DBG loadProfile candidateFromServer:', candidateFromServer);
+
+        if (candidateFromServer) {
+          this.profileImage = candidateFromServer;
+          try { localStorage.setItem('profileImageUrl', candidateFromServer); } catch(e) {}
+          try { this.userSvc.setPhoto(candidateFromServer); } catch (e) {}
+        } else {
+          const savedBase64 = localStorage.getItem('profileImageBase64');
+          this.profileImage = savedBase64 ?? 'assets/icon/asus.jpg';
+        }
+
+        // prefilling edit form fields (important)
+        this.editPhone = this.user.phone ?? '';
+        this.editAddress = this.user.address ?? '';
+
+        // persist user snapshot in localStorage so UI elsewhere can use it
+        try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch(e){}
+
+        try { this.cd.markForCheck(); } catch (e) { /* ignore */ }
+      },
+      error: (err) => {
+        console.error('Gagal memuat profil (GET):', err);
+        const saved = localStorage.getItem('profileImageBase64');
+        if (saved) this.profileImage = saved;
+      }
+    });
+  }
+
+  openImage() { this.showImage = true; }
+  closeImage() { this.showImage = false; }
+
+  /**
+   * toggleEdit:
+   * - jika belum edit -> aktifkan editMode dan pastikan form ter-fill
+   * - jika sedang edit -> lakukan saveProfile() lalu non-aktifkan editMode bila sukses
+   */
+  async toggleEdit() {
+    if (!this.editMode) {
+      // masuk ke mode edit: pastikan nilai form diisi dari this.user
+      this.editMode = true;
+      this.editPhone = this.user.phone ?? '';
+      this.editAddress = this.user.address ?? '';
+      return;
+    }
+
+    // dari editMode -> klik Selesai: panggil save lalu tutup editMode bila sukses
+    await this.saveProfile();
+  }
+
+  logout() {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('profileImageUrl');
+      localStorage.removeItem('profileImageBase64');
+    } catch (e) {
+      console.warn('Gagal membersihkan localStorage:', e);
+    }
+
+    try { this.userSvc.setUser(null); } catch (e) { /* ignore */ }
+    try { this.userSvc.setPhoto(null); } catch (e) { /* ignore */ }
+
+    this.navCtrl.navigateRoot('/login');
+  }
+
+  // FILE CHOOSER & UPLOAD (tidak diubah)
+  openPhotoChooser(event?: Event) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
+    if (!this.fileInput) {
+      console.warn('fileInput tidak tersedia; pastikan <input #fileInput ...> ada di html.' );
+      return;
+    }
+    try { this.fileInput.nativeElement.click(); } catch (e) { console.error(e); }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input?.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.selectedFile = file;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.previewUrl = e.target.result;
+      this.profileImage = this.previewUrl || this.profileImage;
+      try {
+        if (this.previewUrl) localStorage.setItem('profileImageBase64', this.previewUrl);
+      } catch (e) {
+        console.warn('Gagal menyimpan preview ke localStorage', e);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    this.uploadImage();
+  }
+
+  async uploadImage() {
+    if (!this.selectedFile) {
+      console.warn('Tidak ada file untuk diupload.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token tidak ditemukan; user mungkin belum login.');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('photo', this.selectedFile, this.selectedFile.name);
+
+    try {
+      // 1) Kirim FormData (photo)
+      const resp: any = await lastValueFrom(
+        this.http.post(this.PROFILE_URL, fd, { headers: this.getFormHeaders(), observe: 'response' as any })
+      );
+
+      // Proses response upload photo seperti implementasimu semula
+      const body = resp.body ?? resp;
+      // update profileImage jika ada photo_url atau user.photo
+      if (body.photo_url || body.user?.photo || body.photo) {
+        const candidate = this.buildPhotoUrl(body.photo_url ?? body.user?.photo ?? body.photo);
+        if (candidate) {
+          this.profileImage = candidate;
+          try { localStorage.setItem('profileImageUrl', candidate); } catch(e) {}
+          try { this.userSvc.setPhoto(candidate); } catch (e) {}
+        }
+        if (body.user) {
+  this.user = { ...this.user, ...body.user };
+
+  try { 
+    localStorage.setItem('app_user_v1', JSON.stringify(this.user)); 
+  } catch (e) {}
+
+  try { 
+    this.userSvc.setUser(this.user); 
+  } catch (e) {}
+
+  try { 
+    this.cd.markForCheck(); 
+  } catch (e) {}
+}
+
+      } else {
+        // fallback: reload profile
+        await this.loadProfile();
+      }
+
+      // Kosongkan selectedFile & preview
+      this.selectedFile = null;
+      this.previewUrl = null;
+      try { this.cd.markForCheck(); } catch (e) {}
+
+      // 2) Setelah upload foto sukses, kirim FormData kedua untuk memastikan backend menyimpan phone & address
+      const fd2 = new FormData();
+      fd2.append('phone', this.editPhone ?? (this.user?.phone ?? ''));
+      fd2.append('address', this.editAddress ?? (this.user?.address ?? ''));
+
+      try {
+        const resp2: any = await lastValueFrom(
+          this.http.post(this.PROFILE_URL, fd2, { headers: this.getFormHeaders() })
+        );
+
+        // update local user dari response kedua jika ada
+        const updated = resp2.user ?? resp2.data ?? resp2;
+        if (updated) {
+          this.user = { ...this.user, ...updated };
+          try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch (e) {}
+          try { this.userSvc.setUser(this.user); } catch (e) {}
+        }
+
+      } catch (err2) {
+        console.warn('POST FormData kedua gagal:', err2);
+        // Kita tidak langsung gagal total — foto sudah terupload. Tampilkan toast jika perlu.
+      }
+
+    } catch (err: any) {
+      console.error('Upload gagal (POST FormData):', err);
+      const toast = await this.toastCtrl.create({ message: 'Upload foto gagal. Periksa koneksi.', duration: 2500, color: 'danger' });
+      await toast.present();
+    }
+  }
+
+  /** saveProfile - kirim sebagai FormData agar backend yang menerima FormData juga menangkap field text */
+  async saveProfile() {
+    if (this.saving) return;
+    this.saving = true;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token tidak ditemukan; tidak dapat menyimpan profil.');
+      this.saving = false;
+      return;
+    }
+
+    // Buat FormData (meskipun tidak ada file)
+    const fd = new FormData();
+    fd.append('phone', this.editPhone ?? '');
+    fd.append('address', this.editAddress ?? '');
+
+    console.log('FormData sebelum dikirim (saveProfile):', {
+      phone: this.editPhone,
+      address: this.editAddress
+    });
+
+    try {
+      const resp: any = await lastValueFrom(
+        this.http.post(this.PROFILE_URL, fd, { headers: this.getFormHeaders() })
+      );
+
+      // proses response menggunakan handler bawaan
+      await this.handleProfileUpdateResponse(resp);
+      return;
+    } catch (err: any) {
+      console.error('POST FormData /api/employee/profile gagal:', err);
+      const toast = await this.toastCtrl.create({
+        message: (err?.error?.message) ? `Gagal: ${err.error.message}` : 'Gagal menyimpan profil. Periksa koneksi / endpoint.',
+        duration: 2500,
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.saving = false;
+      try { this.cd.markForCheck(); } catch (e) {}
+    }
+  }
+
+
+  private getJsonHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+  }
+
+  private getFormHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    // Note: do NOT set Content-Type for FormData, HttpClient will set boundary automatically.
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+  }
+
+  // helper kecil untuk memproses response (pakai function yang sudah ada sebelumnya)
+private async handleProfileUpdateResponse(resp: any) {
+  console.log('Response update profile:', resp);
+  const updatedUser = resp.user ?? resp.data ?? resp;
+
+  this.user = { ...this.user, ...updatedUser };
+
+  try {
+    const existingRaw = localStorage.getItem('app_user_v1');
+    let merged = this.user;
+    if (existingRaw) {
+      try {
+        const existing = JSON.parse(existingRaw);
+        merged = { ...existing, ...this.user };
+      } catch (e) { merged = this.user; }
+    }
+    localStorage.setItem('app_user_v1', JSON.stringify(merged));
+  } catch (e) {
+    console.warn('Gagal update localStorage app_user_v1', e);
+  }
+
+  try { this.userSvc.setUser(this.user); } catch (e) { /* ignore */ }
+
+  // <-- tambahkan ini supaya UI segera ter-refresh
+  try { this.cd.markForCheck(); } catch(e){ /* ignore */ }
+
+  const toast = await this.toastCtrl.create({ message: 'Profil berhasil diperbarui', duration: 1500, color: 'success' });
+  await toast.present();
+
+  this.editMode = false;
+}
+
+}
+// profile.page.ts -3
+// src/app/pages/profil/profil.page.ts
+import { Component, ElementRef, ViewChild, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule, NavController, Platform, ToastController } from '@ionic/angular';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { lastValueFrom } from 'rxjs';
+
+import { UserService } from '../../services/user.service';
+
+@Component({
+  selector: 'app-profil',
+  templateUrl: './profil.page.html',
+  styleUrls: ['./profil.page.scss'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, IonicModule]
+})
+export class ProfilPage implements OnInit {
+  @ViewChild('fileInput', { static: false }) fileInput?: ElementRef<HTMLInputElement>;
+
+  user: any = {
+    name: 'mumtaz',
+    email: 'mumtaz@example.com',
+    position: 'Staff IT',
+    phone: '+628192323950',
+    address: 'Jl. Klipang Grenn. no 50 Semarang',
+    created_at: new Date()
+  };
+
+  editPhone = '';
+  editAddress = '';
+
+  profileImage = 'assets/icon/asus.jpg';
+  previewUrl: string | null = null;
+  selectedFile: File | null = null;
+
+  private readonly BACKEND_BASE = 'http://127.0.0.1:8000';
+  private readonly PROFILE_URL = `${this.BACKEND_BASE}/api/employee/profile`;
+
+  showImage = false;
+  editMode = false;
+  saving = false;
+
+  constructor(
+    private http: HttpClient,
+    private platform: Platform,
+    private navCtrl: NavController,
+    private cd: ChangeDetectorRef,
+    private userSvc: UserService,
+    private toastCtrl: ToastController
+  ) {}
+
+  private buildPhotoUrl(raw: string | null | undefined): string | null {
+    if (!raw) return null;
+    const s = raw.toString().trim();
+    if (!s) return null;
+    if (/^https?:\/\//i.test(s)) return s;
+    const base = (this.BACKEND_BASE || '').replace(/\/+$/, '');
+    const clean = s.replace(/^\/+/, '').replace(/^storage\//, '');
+    return `${base}/storage/${clean}`;
+  }
+
+  ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  ionViewWillEnter(): void {
+    this.loadProfile();
+  }
+
+  private async urlExists(url: string): Promise<boolean> {
+    try {
+      const resp = await fetch(url, { method: 'HEAD', mode: 'cors' });
+      return resp.ok;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  loadProfile() {
+    const token = localStorage.getItem('token');
+    console.log('DEBUG: token ->', token);
+    if (!token) {
+      const saved = localStorage.getItem('profileImageBase64');
+      if (saved) this.profileImage = saved;
+      const savedUser = localStorage.getItem('app_user_v1');
+      if (savedUser) {
+        try {
+          this.user = JSON.parse(savedUser);
+        } catch (e) { /* ignore parse error */ }
+      }
+      this.editPhone = this.user.phone ?? '';
+      this.editAddress = this.user.address ?? '';
+      return;
+    }
+
+    const headers = this.getJsonHeaders();
+
+    this.http.get(this.PROFILE_URL, { headers }).subscribe({
+      next: async (res: any) => {
+        const data = res.data ?? res.user ?? res;
+        if (!data) {
+          const saved = localStorage.getItem('profileImageBase64');
+          if (saved) this.profileImage = saved;
+          return;
+        }
+
+        this.user = { ...this.user, ...data };
+        try { this.userSvc.setUser(this.user); } catch (e) { /* ignore */ }
+
+        const candidateFromServer = this.buildPhotoUrl(data.photo ?? data.photo_url ?? res.photo_url ?? null);
+        console.log('DBG loadProfile candidateFromServer:', candidateFromServer);
+
+        if (candidateFromServer) {
+          this.profileImage = candidateFromServer;
+          try { localStorage.setItem('profileImageUrl', candidateFromServer); } catch(e) {}
+          try { this.userSvc.setPhoto(candidateFromServer); } catch (e) {}
+        } else {
+          const savedBase64 = localStorage.getItem('profileImageBase64');
+          this.profileImage = savedBase64 ?? 'assets/icon/asus.jpg';
+        }
+
+        this.editPhone = this.user.phone ?? '';
+        this.editAddress = this.user.address ?? '';
+
+        try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch(e){}
+        try { this.cd.markForCheck(); } catch (e) { /* ignore */ }
+      },
+      error: (err) => {
+        console.error('Gagal memuat profil (GET):', err);
+        const saved = localStorage.getItem('profileImageBase64');
+        if (saved) this.profileImage = saved;
+      }
+    });
+  }
+
+  openImage() { this.showImage = true; }
+  closeImage() { this.showImage = false; }
+
+  async toggleEdit() {
+    if (!this.editMode) {
+      this.editMode = true;
+      this.editPhone = this.user.phone ?? '';
+      this.editAddress = this.user.address ?? '';
+      return;
+    }
+    await this.saveProfile();
+  }
+
+  logout() {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('profileImageUrl');
+      localStorage.removeItem('profileImageBase64');
+    } catch (e) {
+      console.warn('Gagal membersihkan localStorage:', e);
+    }
+
+    try { this.userSvc.setUser(null); } catch (e) { /* ignore */ }
+    try { this.userSvc.setPhoto(null); } catch (e) { /* ignore */ }
+
+    this.navCtrl.navigateRoot('/login');
+  }
+
+  openPhotoChooser(event?: Event) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
+    if (!this.fileInput) {
+      console.warn('fileInput tidak tersedia; pastikan <input #fileInput ...> ada di html.' );
+      return;
+    }
+    try { this.fileInput.nativeElement.click(); } catch (e) { console.error(e); }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input?.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.selectedFile = file;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.previewUrl = e.target.result;
+      this.profileImage = this.previewUrl || this.profileImage;
+      try {
+        if (this.previewUrl) localStorage.setItem('profileImageBase64', this.previewUrl);
+      } catch (e) {
+        console.warn('Gagal menyimpan preview ke localStorage', e);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    this.uploadImage();
+  }
+
+  async uploadImage() {
+    if (!this.selectedFile) {
+      console.warn('Tidak ada file untuk diupload.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token tidak ditemukan; user mungkin belum login.');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('photo', this.selectedFile, this.selectedFile.name);
+
+    try {
+      const resp: any = await lastValueFrom(
+        this.http.post(this.PROFILE_URL, fd, { headers: this.getFormHeaders(), observe: 'response' as any })
+      );
+
+      const body = resp.body ?? resp;
+
+      if (body.photo_url || body.user?.photo || body.photo) {
+        const candidate = this.buildPhotoUrl(body.photo_url ?? body.user?.photo ?? body.photo);
+        if (candidate) {
+          this.profileImage = candidate;
+          try { localStorage.setItem('profileImageUrl', candidate); } catch(e) {}
+          try { this.userSvc.setPhoto(candidate); } catch (e) {}
+        }
+        if (body.user) {
+          this.user = { ...this.user, ...body.user };
+          try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch (e) {}
+          try { this.userSvc.setUser(this.user); } catch (e) {}
+          try { this.cd.markForCheck(); } catch (e) {}
+        }
+      } else {
+        await this.loadProfile();
+      }
+
+      this.selectedFile = null;
+      this.previewUrl = null;
+      try { this.cd.markForCheck(); } catch (e) {}
+
+      // kirim data phone & address (FormData kedua)
+      const fd2 = new FormData();
+      fd2.append('phone', this.editPhone ?? (this.user?.phone ?? ''));
+      fd2.append('address', this.editAddress ?? (this.user?.address ?? ''));
+
+      try {
+        const resp2: any = await lastValueFrom(
+          this.http.post(this.PROFILE_URL, fd2, { headers: this.getFormHeaders() })
+        );
+
+        const updated = resp2.user ?? resp2.data ?? resp2;
+        if (updated) {
+          this.user = { ...this.user, ...updated };
+          try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch (e) {}
+          try { this.userSvc.setUser(this.user); } catch (e) {}
+        }
+      } catch (err2) {
+        console.warn('POST FormData kedua gagal:', err2);
+      }
+
+    } catch (err: any) {
+      console.error('Upload gagal (POST FormData):', err);
+      const toast = await this.toastCtrl.create({ message: 'Upload foto gagal. Periksa koneksi.', duration: 2500, color: 'danger' });
+      await toast.present();
+    }
+  }
+
+  async saveProfile() {
+    if (this.saving) return;
+    this.saving = true;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token tidak ditemukan; tidak dapat menyimpan profil.');
+      this.saving = false;
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('phone', this.editPhone ?? '');
+    fd.append('address', this.editAddress ?? '');
+
+    console.log('FormData sebelum dikirim (saveProfile):', {
+      phone: this.editPhone,
+      address: this.editAddress
+    });
+
+    try {
+      const resp: any = await lastValueFrom(
+        this.http.post(this.PROFILE_URL, fd, { headers: this.getFormHeaders() })
+      );
+
+      await this.handleProfileUpdateResponse(resp);
+      return;
+    } catch (err: any) {
+      console.error('POST FormData /api/employee/profile gagal:', err);
+      const toast = await this.toastCtrl.create({
+        message: (err?.error?.message) ? `Gagal: ${err.error.message}` : 'Gagal menyimpan profil. Periksa koneksi / endpoint.',
+        duration: 2500,
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.saving = false;
+      try { this.cd.markForCheck(); } catch (e) {}
+    }
+  }
+
+  private getJsonHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+  }
+
+  private getFormHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+  }
+
+  private async handleProfileUpdateResponse(resp: any) {
+    console.log('Response update profile:', resp);
+    const updatedUser = resp.user ?? resp.data ?? resp;
+
+    this.user = { ...this.user, ...updatedUser };
+
+    try {
+      const existingRaw = localStorage.getItem('app_user_v1');
+      let merged = this.user;
+      if (existingRaw) {
+        try {
+          const existing = JSON.parse(existingRaw);
+          merged = { ...existing, ...this.user };
+        } catch (e) { merged = this.user; }
+      }
+      localStorage.setItem('app_user_v1', JSON.stringify(merged));
+    } catch (e) {
+      console.warn('Gagal update localStorage app_user_v1', e);
+    }
+
+    try { this.userSvc.setUser(this.user); } catch (e) { /* ignore */ }
+    try { this.cd.markForCheck(); } catch(e){ /* ignore */ }
+
+    const toast = await this.toastCtrl.create({ message: 'Profil berhasil diperbarui', duration: 1500, color: 'success' });
+    await toast.present();
+
+    this.editMode = false;
+  }
+}
+//profile.page.ts terbaru
+// src/app/pages/profil/profil.page.ts
+import { Component, ElementRef, ViewChild, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule, NavController, Platform, ToastController } from '@ionic/angular';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { lastValueFrom } from 'rxjs';
+
+import { UserService } from '../../services/user.service';
+
+@Component({
+  selector: 'app-profil',
+  templateUrl: './profil.page.html',
+  styleUrls: ['./profil.page.scss'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, IonicModule]
+})
+export class ProfilPage implements OnInit {
+  @ViewChild('fileInput', { static: false }) fileInput?: ElementRef<HTMLInputElement>;
+
+  user: any = {
+    name: 'mumtaz',
+    email: 'mumtaz@example.com',
+    position: 'Staff IT',
+    phone: '+628192323950',
+    address: 'Jl. Klipang Grenn. no 50 Semarang',
+    created_at: new Date()
+  };
+
+  editPhone = '';
+  editAddress = '';
+
+  profileImage = 'assets/icon/asus.jpg';
+  previewUrl: string | null = null;
+  selectedFile: File | null = null;
+
+  private readonly BACKEND_BASE = 'http://127.0.0.1:8000';
+  private readonly PROFILE_URL = `${this.BACKEND_BASE}/api/employee/profile`;
+
+  showImage = false;
+  editMode = false;
+  saving = false;
+
+  constructor(
+    private http: HttpClient,
+    private platform: Platform,
+    private navCtrl: NavController,
+    private cd: ChangeDetectorRef,
+    private userSvc: UserService,
+    private toastCtrl: ToastController
+  ) {}
+
+  private buildPhotoUrl(raw: string | null | undefined): string | null {
+    if (!raw) return null;
+    const s = raw.toString().trim();
+    if (!s) return null;
+    if (/^https?:\/\//i.test(s)) return s;
+    const base = (this.BACKEND_BASE || '').replace(/\/+$/, '');
+    const clean = s.replace(/^\/+/, '').replace(/^storage\//, '');
+    return `${base}/storage/${clean}`;
+  }
+
+  ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  ionViewWillEnter(): void {
+    this.loadProfile();
+  }
+
+  private async urlExists(url: string): Promise<boolean> {
+    try {
+      const resp = await fetch(url, { method: 'HEAD', mode: 'cors' });
+      return resp.ok;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  loadProfile() {
+    const token = localStorage.getItem('token');
+    console.log('DEBUG: token ->', token);
+    if (!token) {
+      const saved = localStorage.getItem('profileImageBase64');
+      if (saved) this.profileImage = saved;
+      const savedUser = localStorage.getItem('app_user_v1');
+      if (savedUser) {
+        try {
+          this.user = JSON.parse(savedUser);
+        } catch (e) { /* ignore parse error */ }
+      }
+      this.editPhone = this.user.phone ?? '';
+      this.editAddress = this.user.address ?? '';
+      return;
+    }
+
+    const headers = this.getJsonHeaders();
+
+    this.http.get(this.PROFILE_URL, { headers }).subscribe({
+      next: async (res: any) => {
+        const data = res.data ?? res.user ?? res;
+        if (!data) {
+          const saved = localStorage.getItem('profileImageBase64');
+          if (saved) this.profileImage = saved;
+          return;
+        }
+
+        this.user = { ...this.user, ...data };
+        try { this.userSvc.setUser(this.user); } catch (e) { /* ignore */ }
+
+        const candidateFromServer = this.buildPhotoUrl(data.photo ?? data.photo_url ?? res.photo_url ?? null);
+        console.log('DBG loadProfile candidateFromServer:', candidateFromServer);
+
+        if (candidateFromServer) {
+          this.profileImage = candidateFromServer;
+          try { localStorage.setItem('profileImageUrl', candidateFromServer); } catch(e) {}
+          try { this.userSvc.setPhoto(candidateFromServer); } catch (e) {}
+        } else {
+          const savedBase64 = localStorage.getItem('profileImageBase64');
+          this.profileImage = savedBase64 ?? 'assets/icon/asus.jpg';
+        }
+
+        this.editPhone = this.user.phone ?? '';
+        this.editAddress = this.user.address ?? '';
+
+        try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch(e){}
+        try { this.cd.markForCheck(); } catch (e) { /* ignore */ }
+      },
+      error: (err) => {
+        console.error('Gagal memuat profil (GET):', err);
+        const saved = localStorage.getItem('profileImageBase64');
+        if (saved) this.profileImage = saved;
+      }
+    });
+  }
+
+  openImage() { this.showImage = true; }
+  closeImage() { this.showImage = false; }
+
+  async toggleEdit() {
+    if (!this.editMode) {
+      this.editMode = true;
+      this.editPhone = this.user.phone ?? '';
+      this.editAddress = this.user.address ?? '';
+      return;
+    }
+    await this.saveProfile();
+  }
+
+  logout() {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('profileImageUrl');
+      localStorage.removeItem('profileImageBase64');
+    } catch (e) {
+      console.warn('Gagal membersihkan localStorage:', e);
+    }
+
+    try { this.userSvc.setUser(null); } catch (e) { /* ignore */ }
+    try { this.userSvc.setPhoto(null); } catch (e) { /* ignore */ }
+
+    this.navCtrl.navigateRoot('/login');
+  }
+
+  openPhotoChooser(event?: Event) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
+    if (!this.fileInput) {
+      console.warn('fileInput tidak tersedia; pastikan <input #fileInput ...> ada di html.' );
+      return;
+    }
+    try { this.fileInput.nativeElement.click(); } catch (e) { console.error(e); }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input?.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.selectedFile = file;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.previewUrl = e.target.result;
+      this.profileImage = this.previewUrl || this.profileImage;
+      try {
+        if (this.previewUrl) localStorage.setItem('profileImageBase64', this.previewUrl);
+      } catch (e) {
+        console.warn('Gagal menyimpan preview ke localStorage', e);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    this.uploadImage();
+  }
+
+  async uploadImage() {
+    if (!this.selectedFile) {
+      console.warn('Tidak ada file untuk diupload.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token tidak ditemukan; user mungkin belum login.');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('photo', this.selectedFile, this.selectedFile.name);
+
+    try {
+      const resp: any = await lastValueFrom(
+        this.http.post(this.PROFILE_URL, fd, { headers: this.getFormHeaders(), observe: 'response' as any })
+      );
+
+      const body = resp.body ?? resp;
+
+      if (body.photo_url || body.user?.photo || body.photo) {
+        const candidate = this.buildPhotoUrl(body.photo_url ?? body.user?.photo ?? body.photo);
+        if (candidate) {
+          this.profileImage = candidate;
+          try { localStorage.setItem('profileImageUrl', candidate); } catch(e) {}
+          try { this.userSvc.setPhoto(candidate); } catch (e) {}
+        }
+        if (body.user) {
+          this.user = { ...this.user, ...body.user };
+          try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch (e) {}
+          try { this.userSvc.setUser(this.user); } catch (e) {}
+          try { this.cd.markForCheck(); } catch (e) {}
+        }
+      } else {
+        await this.loadProfile();
+      }
+
+      this.selectedFile = null;
+      this.previewUrl = null;
+      try { this.cd.markForCheck(); } catch (e) {}
+
+      // kirim data phone & address (FormData kedua)
+      const fd2 = new FormData();
+      fd2.append('phone', this.editPhone ?? (this.user?.phone ?? ''));
+      fd2.append('address', this.editAddress ?? (this.user?.address ?? ''));
+
+try {
+  const resp2: any = await lastValueFrom(
+    this.http.post(this.PROFILE_URL, fd2, { headers: this.getFormHeaders() })
+  );
+
+  // Ambil user dari backend
+  const updated = resp2.user ?? resp2.data ?? resp2 ?? {};
+
+  // PATCH: Backend tidak menyimpan address -> gunakan nilai yang dikirim user
+  if (!updated.address && (this.editAddress && this.editAddress.trim() !== '')) {
+    updated.address = this.editAddress;
+  }
+
+  // Gabungkan dengan user lokal
+  this.user = { ...this.user, ...updated };
+
+  try { localStorage.setItem('app_user_v1', JSON.stringify(this.user)); } catch (e) {}
+  try { this.userSvc.setUser(this.user); } catch (e) {}
+
+} catch (err2) {
+  console.warn('POST FormData kedua gagal:', err2);
+}
+
+
+    } catch (err: any) {
+      console.error('Upload gagal (POST FormData):', err);
+      const toast = await this.toastCtrl.create({ message: 'Upload foto gagal. Periksa koneksi.', duration: 2500, color: 'danger' });
+      await toast.present();
+    }
+  }
+
+  async saveProfile() {
+    if (this.saving) return;
+    this.saving = true;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token tidak ditemukan; tidak dapat menyimpan profil.');
+      this.saving = false;
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('phone', this.editPhone ?? '');
+    fd.append('address', this.editAddress ?? '');
+
+    console.log('FormData sebelum dikirim (saveProfile):', {
+      phone: this.editPhone,
+      address: this.editAddress
+    });
+
+    try {
+      const resp: any = await lastValueFrom(
+        this.http.post(this.PROFILE_URL, fd, { headers: this.getFormHeaders() })
+      );
+
+      await this.handleProfileUpdateResponse(resp);
+      return;
+    } catch (err: any) {
+      console.error('POST FormData /api/employee/profile gagal:', err);
+      const toast = await this.toastCtrl.create({
+        message: (err?.error?.message) ? `Gagal: ${err.error.message}` : 'Gagal menyimpan profil. Periksa koneksi / endpoint.',
+        duration: 2500,
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.saving = false;
+      try { this.cd.markForCheck(); } catch (e) {}
+    }
+  }
+
+  private getJsonHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+  }
+
+  private getFormHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+  }
+
+  //melakukan perubahan pada handleProfileUpdateResponse
+  // private async handleProfileUpdateResponse(resp: any) {
+  //   console.log('Response update profile:', resp);
+  //   const updatedUser = resp.user ?? resp.data ?? resp;
+
+  //   this.user = { ...this.user, ...updatedUser };
+
+  //   try {
+  //     const existingRaw = localStorage.getItem('app_user_v1');
+  //     let merged = this.user;
+  //     if (existingRaw) {
+  //       try {
+  //         const existing = JSON.parse(existingRaw);
+  //         merged = { ...existing, ...this.user };
+  //       } catch (e) { merged = this.user; }
+  //     }
+  //     localStorage.setItem('app_user_v1', JSON.stringify(merged));
+  //   } catch (e) {
+  //     console.warn('Gagal update localStorage app_user_v1', e);
+  //   }
+
+  //   try { this.userSvc.setUser(this.user); } catch (e) { /* ignore */ }
+  //   try { this.cd.markForCheck(); } catch(e){ /* ignore */ }
+
+  //   const toast = await this.toastCtrl.create({ message: 'Profil berhasil diperbarui', duration: 1500, color: 'success' });
+  //   await toast.present();
+
+  //   this.editMode = false;
+  // }
+  private async handleProfileUpdateResponse(resp: any) {
+  console.log('Response update profile:', resp);
+
+  // ambil user dari response (bisa di body.user, body.data, atau body langsung)
+  const updatedUser = resp.user ?? resp.data ?? resp ?? {};
+
+  // Jika backend tidak mengembalikan address (null), gunakan editAddress yang dikirim client
+  if (!updatedUser.address && (this.editAddress && this.editAddress.trim() !== '')) {
+    // pastikan kita tidak menimpa phone/field lain yang valid
+    updatedUser.address = this.editAddress;
+  }
+
+  // Gabungkan ke this.user
+  this.user = { ...this.user, ...updatedUser };
+
+  // Simpan snapshot ke localStorage (agar persist di app)
+  try {
+    const existingRaw = localStorage.getItem('app_user_v1');
+    let merged = this.user;
+    if (existingRaw) {
+      try {
+        const existing = JSON.parse(existingRaw);
+        merged = { ...existing, ...this.user };
+      } catch (e) {
+        merged = this.user;
+      }
+    }
+    localStorage.setItem('app_user_v1', JSON.stringify(merged));
+  } catch (e) {
+    console.warn('Gagal update localStorage app_user_v1', e);
+  }
+
+  // Broadcast ke UserService agar komponen lain update
+  try { this.userSvc.setUser(this.user); } catch (e) { /* ignore */ }
+
+  // Refresh view
+  try { this.cd.markForCheck(); } catch(e){ /* ignore */ }
+
+  const toast = await this.toastCtrl.create({ message: 'Profil berhasil diperbarui', duration: 1500, color: 'success' });
+  await toast.present();
+
+  this.editMode = false;
+}
+
+}
+

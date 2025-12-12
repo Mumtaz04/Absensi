@@ -1,41 +1,60 @@
+// auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, firstValueFrom, throwError } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  // Base API (sesuaikan bila backend di host/port lain)
   private apiUrl = 'http://127.0.0.1:8000/api';
 
   constructor(private http: HttpClient) {}
 
+  // =========================================================
+  // 🔹 LOGIN
+  // =========================================================
   login(email: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, { email, password });
   }
 
+  // =========================================================
+  // 🔹 FORGOT PASSWORD (KIRIM EMAIL)
+  //   Laravel route: POST /api/forgot-password
+  // =========================================================
   requestPasswordReset(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/forgot-password`, { email });
   }
 
+  // =========================================================
+  // 🔹 RESET PASSWORD (TOKEN DARI MAILTRAP)
+  //   Laravel route: POST /api/reset-password
+  // =========================================================
   resetPasswordWithToken(
     email: string,
     password: string,
     token: string
   ): Observable<any> {
+
     const payload = {
       email,
       password,
       token,
-      password_confirmation: password
+      password_confirmation: password // Laravel usually requires it
     };
+
     return this.http.post(`${this.apiUrl}/reset-password`, payload);
   }
 
+  /**
+   * Dipakai halaman forgot-password
+   */
   public async sendPasswordResetEmail(email: string): Promise<void> {
     if (!email) {
       throw new Error('Email kosong.');
     }
+
     try {
       await firstValueFrom(this.requestPasswordReset(email));
     } catch (err) {
@@ -44,6 +63,9 @@ export class AuthService {
     }
   }
 
+  // =========================================================
+  // 🔹 TOKEN HELPERS
+  // =========================================================
   saveToken(token: string): void {
     localStorage.setItem('token', token);
   }
@@ -60,10 +82,13 @@ export class AuthService {
     localStorage.removeItem('token');
   }
 
+  // =========================================================
+  // 🔹 TAMBAH USER (FORM DATA TIDAK DIUBAH)
+  // =========================================================
   addUser(): Observable<any> {
     const token = this.getToken();
     if (!token) {
-      return throwError(() => new Error('Token tidak ditemukan. Silakan login ulang.'));
+      throw new Error('Token tidak ditemukan. Silakan login ulang.');
     }
 
     const formData = new FormData();
@@ -83,10 +108,13 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/admin/users`, formData, { headers });
   }
 
+  // =========================================================
+  // 🔹 GET PROFILE USER
+  // =========================================================
   getProfile(): Observable<any> {
     const token = this.getToken();
     if (!token) {
-      return throwError(() => new Error('Token tidak ditemukan. Silakan login ulang.'));
+      throw new Error('Token tidak ditemukan. Silakan login ulang.');
     }
 
     const headers = new HttpHeaders({
@@ -96,6 +124,9 @@ export class AuthService {
     return this.http.get(`${this.apiUrl}/employee/profile`, { headers });
   }
 
+  // =========================================================
+  // 🔹 COMMON AUTH HEADER
+  // =========================================================
   private getAuthHeaders(): HttpHeaders {
     const token = this.getToken();
     return new HttpHeaders({
