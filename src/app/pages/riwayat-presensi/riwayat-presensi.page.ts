@@ -60,83 +60,109 @@ export class RiwayatPresensiPage implements OnInit, OnDestroy {
   // Ambil tanggal dari created_at / check_in / check_out
   // dan gabungkan dengan saved lokal jika ada
   //------------------------------------------------------------------
-  async loadCalendar(month: number, year: number) {
-    try {
-      const data: any[] = await firstValueFrom(
-        this.attendanceService.getAttendanceCalendar(month, year)
-      );
+async loadCalendar(month: number, year: number) {
+  try {
+    const data: any[] = await firstValueFrom(
+      this.attendanceService.getAttendanceCalendar(month, year)
+    );
 
-      const pad = (n: number) => String(n).padStart(2, '0');
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    this.calendar = data.map((d) => {
+      // ===== Tentukan tanggal =====
+      let dateKey = '';
+      let dayNum = 0;
+
+      if (d.date) {
+        // format: YYYY-MM-DD
+        dateKey = d.date;
+        dayNum = Number(d.date.split('-')[2]);
+      } else if (d.created_at) {
+        const dt = new Date(d.created_at);
+        if (!isNaN(dt.getTime())) {
+          dateKey = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+          dayNum = dt.getDate();
+        }
+      }
+
+      // fallback terakhir (jaga-jaga)
+      if (!dateKey) {
+        dateKey = `${year}-${pad(month)}-01`;
+        dayNum = 1;
+      }
+
+      // ===== Merge dengan localStorage =====
+      const local = this.attendanceService.getLocalTime(dateKey);
+
+      // cek apakah ini hari ini
       const today = new Date();
       const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+      const isToday = dateKey === todayKey;
 
-      this.calendar = data.map((d) => {
+      // PRIORITAS:
+      // - hari ini -> localStorage
+      // - selain hari ini -> backend
+      const check_in = isToday
+        ? (local?.check_in ?? this.formatLocalTime(d.check_in))
+        : (d.check_in ? this.formatLocalTime(d.check_in) : null);
 
-        // Cari sumber tanggal
-        const rawDate =
-          d.date ||
-          d.created_at ||
-          d.check_in ||
-          d.check_out ||
-          null;
+      const check_out = isToday
+        ? (local?.check_out ?? this.formatLocalTime(d.check_out))
+        : (d.check_out ? this.formatLocalTime(d.check_out) : null);
 
-        const theDate = rawDate ? new Date(rawDate) : null;
-        const day = theDate ? theDate.getDate() : 0;
 
-        // ======= Buat dateKey yang robust =======
-        let dateKey = '';
+      return {
+        day: dayNum,
+        check_in,
+        check_out,
+        status: d.status ?? null,
+        description: d.description ?? null,
+      };
+    });
 
-        if (theDate) {
-          // gunakan tanggal dari server (paling akurat)
-          dateKey = `${theDate.getFullYear()}-${pad(theDate.getMonth() + 1)}-${pad(theDate.getDate())}`;
-        } else if (d.day && typeof d.day === 'number' && d.day > 0) {
-          // jika backend memberi field day (beberapa API), gunakan itu
-          dateKey = `${year}-${pad(month)}-${pad(d.day)}`;
-        } else {
-          // fallback: gunakan todayKey supaya saved lokal untuk hari ini ikut tampil
-          dateKey = todayKey;
-        }
-        // ========================================
+    this.cd.markForCheck();
 
-        // Ambil saved lokal (jika ada)
-        const saved = this.attendanceService.getLocalTime(dateKey);
-
-        const check_in = d.check_in
-          ? this.formatLocalTime(d.check_in)
-          : saved?.check_in || null;
-
-        const check_out = d.check_out
-          ? this.formatLocalTime(d.check_out)
-          : saved?.check_out || null;
-
-        return {
-          day,
-          check_in,
-          check_out,
-          status: d.status ?? null,
-          description: d.description ?? null
-        };
-      });
-
-      // pastikan view di-refresh (berguna kalau OnPush)
-      try { this.cd.markForCheck(); } catch (e) { /* ignore */ }
-
-    } catch (err) {
-      this.calendar = [];
-      console.warn('❌ Gagal memuat kalender:', err);
-    }
+  } catch (err) {
+    console.warn('❌ Gagal memuat kalender:', err);
+    this.calendar = [];
   }
+}
+
 
   //------------------------------------------------------------------
   // Format jam supaya tidak NaN / Invalid Date
+  //  - terima format 'HH:MM' atau 'HH:MM:SS' (time-only)
+  //  - terima ISO datetime / 'YYYY-MM-DD HH:MM:SS'
   //------------------------------------------------------------------
   formatLocalTime(timeStr: string | null) {
     if (!timeStr) return null;
 
-    const date = new Date(timeStr);
-    if (isNaN(date.getTime())) return null;
+    const s = timeStr.trim();
 
-    return date.toLocaleTimeString('id-ID', {
+    // Jika format time-only seperti 'HH:MM' atau 'HH:MM:SS'
+    const timeOnlyMatch = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (timeOnlyMatch) {
+      const hh = Number(timeOnlyMatch[1]);
+      const mm = Number(timeOnlyMatch[2]);
+      if (!isNaN(hh) && !isNaN(mm) && hh >= 0 && hh < 24 && mm >= 0 && mm < 60) {
+        return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+      }
+      return null;
+    }
+
+    // Jika datang sebagai epoch atau full datetime, coba parse dengan Date
+    // juga handle 'YYYY-MM-DD HH:MM:SS' (beberapa PHP backend mengirim seperti ini)
+    let parsed = new Date(s);
+    if (isNaN(parsed.getTime())) {
+      // coba replace spasi dengan 'T' untuk format 'YYYY-MM-DD HH:MM:SS'
+      const alt = s.replace(' ', 'T');
+      parsed = new Date(alt);
+    }
+    if (isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return parsed.toLocaleTimeString('id-ID', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
@@ -148,7 +174,7 @@ export class RiwayatPresensiPage implements OnInit, OnDestroy {
     if (!timeStr) return '-';
 
     // ubah titik ke kolon bila ada
-    const t = timeStr.replace('.', ':');
+    const t = String(timeStr).replace('.', ':');
 
     const parts = t.split(':');
     if (parts.length >= 2) {

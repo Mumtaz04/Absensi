@@ -1,0 +1,258 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IonicModule, NavController } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
+import { AttendanceService } from '../../services/attendance.service';
+import { firstValueFrom, Subscription } from 'rxjs';
+import { ChangeDetectorRef } from '@angular/core';
+
+@Component({
+  selector: 'app-riwayat-presensi',
+  templateUrl: './riwayat-presensi.page.html',
+  styleUrls: ['./riwayat-presensi.page.scss'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, IonicModule]
+})
+export class RiwayatPresensiPage implements OnInit, OnDestroy {
+
+  calendar: Array<{
+    day: number;
+    check_in: string | null;
+    check_out: string | null;
+    status: string | null;
+    description?: string | null;
+  }> = [];
+
+  monthLabel = '';
+  year = 0;
+  month = 0;
+
+  private sub: Subscription | null = null;
+
+  constructor(
+    private navCtrl: NavController,
+    private attendanceService: AttendanceService,
+    private cd: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    const now = new Date();
+    this.month = now.getMonth() + 1;
+    this.year = now.getFullYear();
+
+    this.monthLabel =
+      now.toLocaleString('id-ID', { month: 'long' }) + ' ' + this.year;
+
+    this.loadCalendar(this.month, this.year);
+
+    // Subscribe supaya kalender otomatis refresh setelah check-in / check-out
+    this.sub = this.attendanceService.presensiChanged$.subscribe(() => {
+      console.log('[RiwayatPresensi] presensiChanged event received, reloading calendar');
+      this.loadCalendar(this.month, this.year);
+    });
+  }
+
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
+  }
+
+  //------------------------------------------------------------------
+  // Ambil tanggal dari created_at / check_in / check_out
+  // dan gabungkan dengan saved lokal jika ada
+  //------------------------------------------------------------------
+  async loadCalendar(month: number, year: number) {
+    try {
+      const data: any[] = await firstValueFrom(
+        this.attendanceService.getAttendanceCalendar(month, year)
+      );
+
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const today = new Date();
+      const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+      this.calendar = data.map((d) => {
+
+        // Cari sumber tanggal
+        const rawDate =
+          d.date ||
+          d.created_at ||
+          d.check_in ||
+          d.check_out ||
+          null;
+
+        const theDate = rawDate ? new Date(rawDate) : null;
+        const day = theDate ? theDate.getDate() : 0;
+
+        // ======= Buat dateKey yang robust =======
+        let dateKey = '';
+
+        if (theDate) {
+          // gunakan tanggal dari server (paling akurat)
+          dateKey = `${theDate.getFullYear()}-${pad(theDate.getMonth() + 1)}-${pad(theDate.getDate())}`;
+        } else if (d.day && typeof d.day === 'number' && d.day > 0) {
+          // jika backend memberi field day (beberapa API), gunakan itu
+          dateKey = `${year}-${pad(month)}-${pad(d.day)}`;
+        } else {
+          // fallback: gunakan todayKey supaya saved lokal untuk hari ini ikut tampil
+          dateKey = todayKey;
+        }
+        // ========================================
+
+        // Ambil saved lokal (jika ada)
+        const saved = this.attendanceService.getLocalTime(dateKey);
+
+        const check_in = d.check_in
+          ? this.formatLocalTime(d.check_in)
+          : saved?.check_in || null;
+
+        const check_out = d.check_out
+          ? this.formatLocalTime(d.check_out)
+          : saved?.check_out || null;
+
+        return {
+          day,
+          check_in,
+          check_out,
+          status: d.status ?? null,
+          description: d.description ?? null
+        };
+      });
+
+      // pastikan view di-refresh (berguna kalau OnPush)
+      try { this.cd.markForCheck(); } catch (e) { /* ignore */ }
+
+    } catch (err) {
+      this.calendar = [];
+      console.warn('❌ Gagal memuat kalender:', err);
+    }
+  }
+
+  //------------------------------------------------------------------
+  // Format jam supaya tidak NaN / Invalid Date
+  //------------------------------------------------------------------
+  formatLocalTime(timeStr: string | null) {
+    if (!timeStr) return null;
+
+    const date = new Date(timeStr);
+    if (isNaN(date.getTime())) return null;
+
+    return date.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  }
+
+  // ... (method fmtTime() dan statusClass() tetap sama)
+  fmtTime(timeStr: string | null | undefined) {
+    if (!timeStr) return '-';
+
+    // ubah titik ke kolon bila ada
+    const t = timeStr.replace('.', ':');
+
+    const parts = t.split(':');
+    if (parts.length >= 2) {
+      const hh = parts[0], mm = parts[1];
+      if (!isNaN(Number(hh)) && !isNaN(Number(mm))) {
+        return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+      }
+    }
+    return '-';
+  }
+
+
+  statusClass(status: string | null) {
+    if (!status) return '';
+    const s = status.toLowerCase();
+    if (s.includes('telat') || s.includes('late') || s.includes('terlambat'))
+      return 'terlambat';
+    if (s.includes('izin') || s.includes('cuti')) return 'cuti';
+    if (s.includes('alfa')) return 'alfa';
+    if (s.includes('libur') || s.includes('off')) return 'libur';
+    return '';
+  }
+}
+
+// loadCalendar
+  async loadCalendar(month: number, year: number) {
+    try {
+      const data: any[] = await firstValueFrom(
+        this.attendanceService.getAttendanceCalendar(month, year)
+      );
+
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const today = new Date();
+      const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+      this.calendar = data.map((d) => {
+
+        // Cari sumber tanggal (prioritas: date -> created_at -> check_in/check_out)
+        const rawDate =
+          d.date ||
+          d.created_at ||
+          null;
+
+        // Jika backend tidak memberikan full date tapi memberi 'day' angka, gunakan itu
+        let theDate: Date | null = null;
+        if (rawDate) {
+          // rawDate bisa berupa 'YYYY-MM-DD' atau 'YYYY-MM-DD HH:MM:SS' atau ISO
+          const t = new Date(rawDate);
+          theDate = isNaN(t.getTime()) ? null : t;
+        }
+
+        // Jika tidak ada full-date, tapi backend pakai field 'day'
+        const dayNum = theDate ? theDate.getDate() : (typeof d.day === 'number' && d.day > 0 ? d.day : 0);
+
+        // Buat dateKey yang robust: kalau ada theDate gunakan itu, else gunakan year-month-dayNum bila tersedia, else todayKey
+        let dateKey = '';
+        if (theDate) {
+          dateKey = `${theDate.getFullYear()}-${pad(theDate.getMonth() + 1)}-${pad(theDate.getDate())}`;
+        } else if (dayNum > 0) {
+          dateKey = `${year}-${pad(month)}-${pad(dayNum)}`;
+        } else {
+          dateKey = todayKey;
+        }
+
+        // Ambil saved lokal (jika ada)
+        const saved = this.attendanceService.getLocalTime(dateKey);
+
+        // Format check_in & check_out:
+        // - backend kadang mengirim 'HH:MM:SS' (time-only) atau ISO datetime (2025-12-12 06:58:28)
+        // - gunakan formatLocalTime() yang aman
+        const check_in = d.check_in
+          ? this.formatLocalTime(String(d.check_in))
+          : (saved?.check_in || null);
+
+        const check_out = d.check_out
+          ? this.formatLocalTime(String(d.check_out))
+          : (saved?.check_out || null);
+
+        return {
+          day: dayNum,
+          check_in,
+          check_out,
+          status: d.status ?? null,
+          description: d.description ?? null
+        };
+      });
+
+      // pastikan view di-refresh (berguna kalau OnPush)
+      try { this.cd.markForCheck(); } catch (e) { /* ignore */ }
+
+    } catch (err) {
+      this.calendar = [];
+      console.warn('❌ Gagal memuat kalender:', err);
+    }
+  }
+
+  // loadCalendar
+        // ===== Merge dengan localStorage =====
+      const local = this.attendanceService.getLocalTime(dateKey);
+
+      const check_in = d.check_in
+        ? this.formatLocalTime(String(d.check_in))
+        : local?.check_in ?? null;
+
+      const check_out = d.check_out
+        ? this.formatLocalTime(String(d.check_out))
+        : local?.check_out ?? null;
