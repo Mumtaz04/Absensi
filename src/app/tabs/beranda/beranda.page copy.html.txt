@@ -97,51 +97,24 @@
     </p>
   </div>
 
-<!-- 📊 Statistik -->
-<ion-card class="statistik-card">
-  <h3>Statistik Bulanan</h3>
-
-  <div class="stat-row">
-    <div class="stat-top">
-      <span>Hadir</span>
-      <span>{{ monthlyStats.hadir }} hari</span>
+  <!-- 📊 Statistik -->
+  <ion-card class="statistik-card">
+    <h3>Statistik Bulanan</h3>
+    <div class="stat-row" *ngFor="let stat of [
+      { label: 'Hadir', count: '20 hari', class: 'hadir', width: '80%' },
+      { label: 'Terlambat', count: '5 hari', class: 'terlambat', width: '25%' },
+      { label: 'Cuti', count: '2 hari', class: 'cuti', width: '10%' },
+      { label: 'Alfa', count: '1 hari', class: 'alfa', width: '5%' }
+    ]">
+      <div class="stat-top">
+        <span>{{ stat.label }}</span>
+        <span>{{ stat.count }}</span>
+      </div>
+      <div class="bar-bg">
+        <div class="bar {{ stat.class }}" [style.width]="stat.width"></div>
+      </div>
     </div>
-    <div class="bar-bg">
-      <div class="bar hadir" [style.width.%]="monthlyStats.hadir * 4"></div>
-    </div>
-  </div>
-
-  <div class="stat-row">
-    <div class="stat-top">
-      <span>Terlambat</span>
-      <span>{{ monthlyStats.terlambat }} hari</span>
-    </div>
-    <div class="bar-bg">
-      <div class="bar terlambat" [style.width.%]="monthlyStats.terlambat * 4"></div>
-    </div>
-  </div>
-
-  <div class="stat-row">
-    <div class="stat-top">
-      <span>Cuti</span>
-      <span>{{ monthlyStats.cuti }} hari</span>
-    </div>
-    <div class="bar-bg">
-      <div class="bar cuti" [style.width.%]="monthlyStats.cuti * 4"></div>
-    </div>
-  </div>
-
-  <div class="stat-row">
-    <div class="stat-top">
-      <span>Alfa</span>
-      <span>{{ monthlyStats.alfa }} hari</span>
-    </div>
-    <div class="bar-bg">
-      <div class="bar alfa" [style.width.%]="monthlyStats.alfa * 4"></div>
-    </div>
-  </div>
-</ion-card>
-
+  </ion-card>
 
 </ion-content>
 

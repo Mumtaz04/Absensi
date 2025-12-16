@@ -10,6 +10,15 @@ import { takeUntil } from 'rxjs/operators';
 import { AttendanceService } from '../../services/attendance.service';
 import { UserService, AppUser } from '../../services/user.service';
 
+
+// ⬇️ TAMBAHKAN DI SINI
+interface MonthlyStats {
+  hadir: number;
+  terlambat: number;
+  cuti: number;
+  alfa: number;
+}
+
 @Component({
   selector: 'app-beranda',
   standalone: true,
@@ -27,6 +36,14 @@ export class BerandaPage implements OnInit, OnDestroy {
     jamCheckin: null as string | null,
     jamCheckout: null as string | null,
     pesan: 'Anda belum presensi, mohon presensi sekarang.'
+  };
+
+    // ⬇️ TAMBAHKAN DI SINI
+  monthlyStats: MonthlyStats = {
+    hadir: 0,
+    terlambat: 0,
+    cuti: 0,
+    alfa: 0,
   };
 
   private sub: Subscription | null = null;
@@ -69,6 +86,7 @@ export class BerandaPage implements OnInit, OnDestroy {
       });
 
     this.loadStatusHariIni();
+    this.loadMonthlyStats(); // ✅ BENAR DI SINI
 
     // subscribe presensi change
     this.sub = this.attendanceSvc.presensiChanged$.subscribe(() => {
@@ -189,6 +207,7 @@ private normalizePhotoCandidate(candidate: string | null | undefined): string {
 
   // ---------------- remaining methods (status presensi, util, navigasi) ----------------
   async loadStatusHariIni() {
+    
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -246,6 +265,39 @@ private normalizePhotoCandidate(candidate: string | null | undefined): string {
         }
       });
   }
+
+  // =====================
+// 📊 LOAD STATISTIK BULANAN
+// =====================
+loadMonthlyStats() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`
+  });
+
+  this.http
+    .get(`${this.apiUrl}/api/employee/stats`, { headers })
+    .subscribe({
+      next: (res: any) => {
+        const data = res?.data ?? res;
+
+        this.monthlyStats = {
+          hadir: data?.hadir ?? 0,
+          terlambat: data?.terlambat ?? 0,
+          cuti: data?.cuti ?? 0,
+          alfa: data?.alfa ?? 0,
+        };
+
+        try { this.cd.markForCheck(); } catch {}
+      },
+      error: (err) => {
+        console.error('❌ Gagal load statistik bulanan:', err);
+      }
+    });
+}
+
 
   formatTime(datetime: string | null): string | null {
     if (!datetime) return null;
