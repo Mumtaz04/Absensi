@@ -1,0 +1,626 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { IonicModule, NavController } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
+interface FilePendukung {
+  nama: string;
+  url?: string;
+}
+
+interface Izin {
+  id?: string | number;
+  alasan: string;
+  tanggal?: string;
+  dari?: string;
+  sampai?: string;
+  durasi?: string;
+  deskripsi?: string;
+  status?: 'Disetujui' | 'Ditolak' | 'Menunggu' | string;
+  tanggal_tinjau?: string | null;
+  alasan_ditolak?: string;
+  filePendukung?: FilePendukung[];
+  files?: string[];
+  createdAt?: string;
+  durasiHari?: number;
+  __isNew?: boolean;
+}
+
+@Component({
+  standalone: true,
+  selector: 'app-riwayat-izin',
+  templateUrl: './riwayat-izin.page.html',
+  styleUrls: ['./riwayat-izin.page.scss'],
+  imports: [IonicModule, CommonModule, FormsModule],
+})
+export class RiwayatIzinPage implements OnInit, OnDestroy {
+  constructor(private navCtrl: NavController, private router: Router) {}
+
+  filter: string = 'Semua';
+  filters: string[] = ['Semua', 'Disetujui', 'Menunggu', 'Ditolak'];
+
+  daftarIzin: Izin[] = [];
+  izinTerpilih: Izin | null = null;
+
+  ngOnInit(): void {
+    const state: any = history.state || {};
+    if (state && state.newIzin) this.prependIzin(state.newIzin);
+
+    const lastRaw = sessionStorage.getItem('lastCreatedIzin');
+    if (lastRaw) {
+      try { const last = JSON.parse(lastRaw); this.prependIzin(last); } catch {}
+      sessionStorage.removeItem('lastCreatedIzin');
+    }
+
+    const raw = localStorage.getItem('izinList');
+    if (raw) {
+      try {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) this.mergeList(arr);
+      } catch (err) { console.error('Gagal parse izinList', err); }
+    }
+  }
+
+  ngOnDestroy(): void {
+    try {
+      document.body.classList.remove('detail-open');
+      document.body.style.overflow = '';
+    } catch {}
+  }
+
+  private prependIzin(item: Partial<Izin> | any) {
+    const id = item?.id ?? `local-${Date.now()}`;
+    if (!this.daftarIzin.find(i => i.id === id)) {
+      const normalized: Izin = {
+        id,
+        alasan: item.alasan || item.reason || '-',
+        dari: item.dari || item.from || item.startDate,
+        sampai: item.sampai || item.to || item.endDate,
+        tanggal: item.tanggal || (item.dari && item.sampai ? `${this.formatDateShort(item.dari)} - ${this.formatDateShort(item.sampai)}` : item.tanggal),
+        durasi: item.durasi || (item.durasiHari ? `${item.durasiHari} hari` : undefined),
+        deskripsi: item.deskripsi || item.description || '-',
+        status: item.status || 'Menunggu',
+        tanggal_tinjau: item.tanggal_tinjau || item.reviewedAt || null,
+        alasan_ditolak: item.alasan_ditolak || item.rejectionReason,
+        filePendukung: (item.files || item.filePendukung || []).map((f: any) => typeof f === 'string' ? { nama: f, url: '' } : f),
+        createdAt: item.createdAt || new Date().toISOString(),
+        durasiHari: item.durasiHari ?? item.durationDays,
+        __isNew: true
+      };
+
+      this.daftarIzin = [normalized, ...this.daftarIzin];
+      try { localStorage.setItem('izinList', JSON.stringify(this.daftarIzin)); } catch {}
+      setTimeout(() => { this.daftarIzin = this.daftarIzin.map(d => ({ ...d, __isNew: false })); }, 2500);
+    }
+  }
+
+  private mergeList(arr: any[]) {
+    const existingIds = new Set(this.daftarIzin.map(i => i.id));
+    const newOnes = arr.filter(a => !existingIds.has(a.id));
+    const normalized = newOnes.map((i: any) => ({
+      id: i.id ?? `local-${Math.random().toString(36).slice(2,9)}`,
+      alasan: i.alasan || i.reason || '-',
+      dari: i.dari || i.from || i.startDate,
+      sampai: i.sampai || i.to || i.endDate,
+      tanggal: i.tanggal || (i.dari && i.sampai ? `${this.formatDateShort(i.dari)} - ${this.formatDateShort(i.sampai)}` : i.tanggal),
+      durasi: i.durasi || (i.durasiHari ? `${i.durasiHari} hari` : undefined),
+      deskripsi: i.deskripsi || i.description || '-',
+      status: i.status || 'Menunggu',
+      tanggal_tinjau: i.tanggal_tinjau || i.reviewedAt || null,
+      alasan_ditolak: i.alasan_ditolak || i.rejectionReason,
+      filePendukung: (i.files || i.filePendukung || []).map((f: any) => typeof f === 'string' ? { nama: f, url: '' } : f),
+      createdAt: i.createdAt || new Date().toISOString(),
+      durasiHari: i.durasiHari ?? i.durationDays,
+      __isNew: false
+    }));
+    this.daftarIzin = [...this.daftarIzin, ...normalized];
+  }
+
+// tambahkan ini di dalam class RiwayatIzinPage
+
+public formatDateShort(d: string | Date | undefined): string {
+  if (!d) return '-';
+  const date = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(date.getTime())) return String(d);
+  return date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+}
+
+public formatTimeShort(d: string | Date | undefined): string {
+  if (!d) return '-';
+  const date = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(date.getTime())) return '-';
+  return date.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+}
+/**
+ * Kembalikan nama Ionicon berdasarkan status.
+ * Tidak mengubah logika lainnya.
+ */
+public statusIcon(status?: string | null): string {
+  const s = (status || 'Menunggu').toString().toLowerCase();
+
+  if (s === 'disetujui' || s === 'setuju' || s === 'approved') {
+    return 'checkmark-circle-outline'; // ceklis
+  }
+  if (s === 'ditolak' || s === 'tolak' || s === 'rejected') {
+    return 'close-circle-outline'; // silang
+  }
+  // default / menunggu
+  return 'time-outline'; // jam
+}
+
+
+  setFilter(f: string): void { this.filter = f; }
+
+  filteredIzin(): Izin[] {
+    if (!this.filter || this.filter.toLowerCase() === 'semua') return this.daftarIzin;
+    return this.daftarIzin.filter(izin => (izin.status || '').toLowerCase() === this.filter.toLowerCase());
+  }
+
+  toggleDetail(izin: Izin | null): void {
+    this.izinTerpilih = izin;
+    try {
+      if (typeof document !== 'undefined' && document?.body) {
+        if (izin) { document.body.classList.add('detail-open'); document.body.style.overflow = 'hidden'; }
+        else { document.body.classList.remove('detail-open'); document.body.style.overflow = ''; }
+      }
+    } catch (err) { console.warn('toggleDetail error', err); }
+  }
+
+  public lihatFile(url?: string | undefined) {
+    if (!url) { console.warn('Tidak ada url file untuk preview'); return; }
+    if (url.startsWith('data:')) { window.open(url, '_blank'); return; }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  /**
+   * Unified downloadFile implementation (single).
+   * Supports:
+   *  - data:... base64 data URIs
+   *  - regular URLs (with optional Authorization header token)
+   *  - will infer filename/extension when possible
+   */
+  public async downloadFile(url: string | undefined, suggestedName = 'file') {
+    if (!url) { console.warn('Tidak ada url'); return; }
+
+    try {
+      // data URI (base64)
+      if (url.startsWith('data:')) {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const ext = this.getExtFromMime(blob.type);
+        const filename = suggestedName && suggestedName.includes('.') ? suggestedName : `${suggestedName}${ext}`;
+        this.saveBlob(blob, filename);
+        return;
+      }
+
+      const token = localStorage.getItem('token') || '';
+const resp = await fetch(url, { method: 'GET', headers: token ? { 'Authorization': `Bearer ${token}` } : undefined });
+
+if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+// try read filename from header (Content-Disposition)
+let filenameFromHeader: string | null = null;
+try {
+  const cd = resp.headers.get('content-disposition') || resp.headers.get('Content-Disposition');
+  if (cd) {
+    // contoh: attachment; filename="laporan.pdf"
+    const m = /filename\*?=(?:UTF-8'')?['"]?([^;'"]+)/i.exec(cd);
+    if (m && m[1]) filenameFromHeader = decodeURIComponent(m[1].replace(/['"]/g, ''));
+  }
+} catch(e) {
+  // ignore
+}
+
+const blob = await resp.blob();
+
+let filename = suggestedName || filenameFromHeader || this.getFilenameFromUrl(url) || 'file';
+if (!filename.includes('.')) {
+  const ext = this.getExtFromMime(blob.type);
+  filename = `${filename}${ext}`;
+}
+
+
+      this.saveBlob(blob, filename);
+    } catch (err) {
+      console.error('downloadFile error', err);
+    }
+  }
+
+  private saveBlob(blob: Blob, filename: string) {
+    const link = document.createElement('a');
+    const objectUrl = URL.createObjectURL(blob);
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
+  }
+
+  private getFilenameFromUrl(url: string): string | null {
+    try {
+      const u = new URL(url);
+      const path = u.pathname;
+      const last = path.split('/').filter(Boolean).pop();
+      if (!last) return null;
+      const params = u.searchParams;
+      const nameFromQuery = params.get('filename') || params.get('name') || params.get('file');
+      return nameFromQuery || last;
+    } catch {
+      const parts = url.split('/').pop() || '';
+      return parts.split('?')[0] || null;
+    }
+  }
+
+  private getExtFromMime(mime = ''): string {
+    if (!mime) return '.bin';
+    const m = mime.split(';')[0].trim().toLowerCase();
+    if (m === 'application/pdf') return '.pdf';
+    if (m.startsWith('image/png')) return '.png';
+    if (m.startsWith('image/jpeg')) return '.jpg';
+    if (m.startsWith('image/jpg')) return '.jpg';
+    if (m.startsWith('image/webp')) return '.webp';
+    if (m.startsWith('image/gif')) return '.gif';
+    if (m === 'application/zip') return '.zip';
+    if (m === 'application/msword') return '.doc';
+    if (m === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return '.docx';
+    if (m === 'application/vnd.ms-excel') return '.xls';
+    if (m === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') return '.xlsx';
+    if (m.startsWith('audio/')) return '.mp3';
+    if (m.startsWith('video/')) return '.mp4';
+    const fallback = m.includes('/') ? '.' + m.split('/').pop() : '.bin';
+    return fallback;
+  }
+
+  onBackPressed(): void { this.navCtrl.back(); }
+
+  async doRefresh(e?: Event) {
+    const raw = localStorage.getItem('izinList');
+    if (raw) { try { this.daftarIzin = JSON.parse(raw); } catch {} }
+    if (e) {
+      try {
+        const anyEv: any = e;
+        if (anyEv.detail && typeof anyEv.detail.complete === 'function') anyEv.detail.complete();
+      } catch {}
+    }
+  }
+}
+
+// riwayat izin page ts copy 2
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { IonicModule, NavController } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { IzinService } from '../../services/izin.service';
+
+interface FilePendukung {
+  nama: string;
+  url?: string;
+}
+
+interface Izin {
+  id?: string | number;
+  alasan: string;
+  tanggal?: string;
+  dari?: string;
+  sampai?: string;
+  durasi?: string;
+  deskripsi?: string;
+  status?: 'Disetujui' | 'Ditolak' | 'Menunggu' | string;
+  tanggal_tinjau?: string | null;
+  alasan_ditolak?: string;
+  filePendukung?: FilePendukung[];
+  files?: string[];
+  createdAt?: string;
+  durasiHari?: number;
+  __isNew?: boolean;
+}
+
+@Component({
+  standalone: true,
+  selector: 'app-riwayat-izin',
+  templateUrl: './riwayat-izin.page.html',
+  styleUrls: ['./riwayat-izin.page.scss'],
+  imports: [IonicModule, CommonModule, FormsModule],
+})
+export class RiwayatIzinPage implements OnInit, OnDestroy {
+  constructor(
+    private navCtrl: NavController, 
+    private router: Router,
+    private izinService: IzinService
+  ) {}
+
+  filter: string = 'Semua';
+  filters: string[] = ['Semua', 'Disetujui', 'Menunggu', 'Ditolak'];
+
+  daftarIzin: Izin[] = [];
+  izinTerpilih: Izin | null = null;
+
+  async ngOnInit(): Promise<void> {
+  await this.loadRiwayatIzin();
+  }
+
+  handleBack() {
+  // cek apakah ada history sebelumnya
+  if (window.history.length > 1) {
+    this.navCtrl.back();
+  } else {
+    // fallback ke beranda
+    this.router.navigate(['/beranda']);
+  }
+}
+
+  ngOnDestroy(): void {
+    try {
+      document.body.classList.remove('detail-open');
+      document.body.style.overflow = '';
+    } catch {}
+  }
+
+async loadRiwayatIzin() {
+  try {
+    const res = await this.izinService.getRiwayat();
+    const data = res.data || []; // ⬅️ INI KUNCI
+
+    this.daftarIzin = data.map((i: any) => {
+      let statusLabel = 'Menunggu';
+      if (i.status === 'approved') statusLabel = 'Disetujui';
+      if (i.status === 'rejected') statusLabel = 'Ditolak';
+
+      return {
+        id: i.id,
+        alasan: i.reason,
+        dari: i.start_date,
+        sampai: i.end_date,
+        tanggal: `${this.formatDateShort(i.start_date)} - ${this.formatDateShort(i.end_date)}`,
+        durasi: i.duration,
+        status: statusLabel,
+        createdAt: i.created_at,
+        filePendukung: i.support_file
+          ? [{
+              nama: i.support_file_original_name,
+              url: i.support_file_url
+            }]
+          : []
+      };
+    });
+  } catch (err) {
+    console.error('Gagal memuat riwayat izin', err);
+  }
+}
+
+
+
+
+
+
+  // private prependIzin(item: Partial<Izin> | any) {
+  //   const id = item?.id ?? `local-${Date.now()}`;
+  //   if (!this.daftarIzin.find(i => i.id === id)) {
+  //     const normalized: Izin = {
+  //       id,
+  //       alasan: item.alasan || item.reason || '-',
+  //       dari: item.dari || item.from || item.startDate,
+  //       sampai: item.sampai || item.to || item.endDate,
+  //       tanggal: item.tanggal || (item.dari && item.sampai ? `${this.formatDateShort(item.dari)} - ${this.formatDateShort(item.sampai)}` : item.tanggal),
+  //       durasi: item.durasi || (item.durasiHari ? `${item.durasiHari} hari` : undefined),
+  //       deskripsi: item.deskripsi || item.description || '-',
+  //       status: item.status || 'Menunggu',
+  //       tanggal_tinjau: item.tanggal_tinjau || item.reviewedAt || null,
+  //       alasan_ditolak: item.alasan_ditolak || item.rejectionReason,
+  //       filePendukung: (item.files || item.filePendukung || []).map((f: any) => typeof f === 'string' ? { nama: f, url: '' } : f),
+  //       createdAt: item.createdAt || new Date().toISOString(),
+  //       durasiHari: item.durasiHari ?? item.durationDays,
+  //       __isNew: true
+  //     };
+
+  //     this.daftarIzin = [normalized, ...this.daftarIzin];
+  //     try { localStorage.setItem('izinList', JSON.stringify(this.daftarIzin)); } catch {}
+  //     setTimeout(() => { this.daftarIzin = this.daftarIzin.map(d => ({ ...d, __isNew: false })); }, 2500);
+  //   }
+  // }
+
+  // private mergeList(arr: any[]) {
+  //   const existingIds = new Set(this.daftarIzin.map(i => i.id));
+  //   const newOnes = arr.filter(a => !existingIds.has(a.id));
+  //   const normalized = newOnes.map((i: any) => ({
+  //     id: i.id ?? `local-${Math.random().toString(36).slice(2,9)}`,
+  //     alasan: i.alasan || i.reason || '-',
+  //     dari: i.dari || i.from || i.startDate,
+  //     sampai: i.sampai || i.to || i.endDate,
+  //     tanggal: i.tanggal || (i.dari && i.sampai ? `${this.formatDateShort(i.dari)} - ${this.formatDateShort(i.sampai)}` : i.tanggal),
+  //     durasi: i.durasi || (i.durasiHari ? `${i.durasiHari} hari` : undefined),
+  //     deskripsi: i.deskripsi || i.description || '-',
+  //     status: i.status || 'Menunggu',
+  //     tanggal_tinjau: i.tanggal_tinjau || i.reviewedAt || null,
+  //     alasan_ditolak: i.alasan_ditolak || i.rejectionReason,
+  //     filePendukung: (i.files || i.filePendukung || []).map((f: any) => typeof f === 'string' ? { nama: f, url: '' } : f),
+  //     createdAt: i.createdAt || new Date().toISOString(),
+  //     durasiHari: i.durasiHari ?? i.durationDays,
+  //     __isNew: false
+  //   }));
+  //   this.daftarIzin = [...this.daftarIzin, ...normalized];
+  // }
+
+// tambahkan ini di dalam class RiwayatIzinPage
+
+public formatDateShort(d: string | Date | undefined): string {
+  if (!d) return '-';
+  const date = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(date.getTime())) return String(d);
+  return date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+}
+
+public formatTimeShort(d: string | Date | undefined): string {
+  if (!d) return '-';
+  const date = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(date.getTime())) return '-';
+  return date.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+}
+/**
+ * Kembalikan nama Ionicon berdasarkan status.
+ * Tidak mengubah logika lainnya.
+ */
+public statusIcon(status?: string | null): string {
+  const s = (status || 'Menunggu').toString().toLowerCase();
+
+  if (s === 'disetujui' || s === 'setuju' || s === 'approved') {
+    return 'checkmark-circle-outline'; // ceklis
+  }
+  if (s === 'ditolak' || s === 'tolak' || s === 'rejected') {
+    return 'close-circle-outline'; // silang
+  }
+  // default / menunggu
+  return 'time-outline'; // jam
+}
+
+
+  setFilter(f: string): void { this.filter = f; }
+
+  filteredIzin(): Izin[] {
+    if (!this.filter || this.filter.toLowerCase() === 'semua') return this.daftarIzin;
+    return this.daftarIzin.filter(izin => (izin.status || '').toLowerCase() === this.filter.toLowerCase());
+  }
+
+  toggleDetail(izin: Izin | null): void {
+    this.izinTerpilih = izin;
+    try {
+      if (typeof document !== 'undefined' && document?.body) {
+        if (izin) { document.body.classList.add('detail-open'); document.body.style.overflow = 'hidden'; }
+        else { document.body.classList.remove('detail-open'); document.body.style.overflow = ''; }
+      }
+    } catch (err) { console.warn('toggleDetail error', err); }
+  }
+
+  public lihatFile(url?: string | undefined) {
+    if (!url) { console.warn('Tidak ada url file untuk preview'); return; }
+    if (url.startsWith('data:')) { window.open(url, '_blank'); return; }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  /**
+   * Unified downloadFile implementation (single).
+   * Supports:
+   *  - data:... base64 data URIs
+   *  - regular URLs (with optional Authorization header token)
+   *  - will infer filename/extension when possible
+   */
+  public async downloadFile(url: string | undefined, suggestedName = 'file') {
+    if (!url) { console.warn('Tidak ada url'); return; }
+
+    try {
+      // data URI (base64)
+      if (url.startsWith('data:')) {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const ext = this.getExtFromMime(blob.type);
+        const filename = suggestedName && suggestedName.includes('.') ? suggestedName : `${suggestedName}${ext}`;
+        this.saveBlob(blob, filename);
+        return;
+      }
+
+      const token = localStorage.getItem('token') || '';
+const resp = await fetch(url, { method: 'GET', headers: token ? { 'Authorization': `Bearer ${token}` } : undefined });
+
+if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+// try read filename from header (Content-Disposition)
+let filenameFromHeader: string | null = null;
+try {
+  const cd = resp.headers.get('content-disposition') || resp.headers.get('Content-Disposition');
+  if (cd) {
+    // contoh: attachment; filename="laporan.pdf"
+    const m = /filename\*?=(?:UTF-8'')?['"]?([^;'"]+)/i.exec(cd);
+    if (m && m[1]) filenameFromHeader = decodeURIComponent(m[1].replace(/['"]/g, ''));
+  }
+} catch(e) {
+  // ignore
+}
+
+const blob = await resp.blob();
+
+let filename = suggestedName || filenameFromHeader || this.getFilenameFromUrl(url) || 'file';
+if (!filename.includes('.')) {
+  const ext = this.getExtFromMime(blob.type);
+  filename = `${filename}${ext}`;
+}
+
+
+      this.saveBlob(blob, filename);
+    } catch (err) {
+      console.error('downloadFile error', err);
+    }
+  }
+
+  private saveBlob(blob: Blob, filename: string) {
+    const link = document.createElement('a');
+    const objectUrl = URL.createObjectURL(blob);
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
+  }
+
+  private getFilenameFromUrl(url: string): string | null {
+    try {
+      const u = new URL(url);
+      const path = u.pathname;
+      const last = path.split('/').filter(Boolean).pop();
+      if (!last) return null;
+      const params = u.searchParams;
+      const nameFromQuery = params.get('filename') || params.get('name') || params.get('file');
+      return nameFromQuery || last;
+    } catch {
+      const parts = url.split('/').pop() || '';
+      return parts.split('?')[0] || null;
+    }
+  }
+
+  private getExtFromMime(mime = ''): string {
+    if (!mime) return '.bin';
+    const m = mime.split(';')[0].trim().toLowerCase();
+    if (m === 'application/pdf') return '.pdf';
+    if (m.startsWith('image/png')) return '.png';
+    if (m.startsWith('image/jpeg')) return '.jpg';
+    if (m.startsWith('image/jpg')) return '.jpg';
+    if (m.startsWith('image/webp')) return '.webp';
+    if (m.startsWith('image/gif')) return '.gif';
+    if (m === 'application/zip') return '.zip';
+    if (m === 'application/msword') return '.doc';
+    if (m === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return '.docx';
+    if (m === 'application/vnd.ms-excel') return '.xls';
+    if (m === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') return '.xlsx';
+    if (m.startsWith('audio/')) return '.mp3';
+    if (m.startsWith('video/')) return '.mp4';
+    const fallback = m.includes('/') ? '.' + m.split('/').pop() : '.bin';
+    return fallback;
+  }
+
+  onBackPressed(): void { this.navCtrl.back(); }
+
+async doRefresh(e?: any) {
+  await this.loadRiwayatIzin();
+  e?.detail?.complete();
+}
+
+}

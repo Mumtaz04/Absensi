@@ -39,8 +39,13 @@
         Forgot password?
       </div>
 
-      <!-- Tombol Login -->
-      <button class="login-btn" (click)="login()">Login</button>
+      <!-- Tombol Login (WARNA DINAMIS) -->
+      <button
+        class="login-btn"
+        [class.active]="email.length > 0"
+        (click)="login()">
+        Login
+      </button>
 
       <!-- Pesan error -->
       <p *ngIf="errorMessage" style="color: red; font-size: 13px;">

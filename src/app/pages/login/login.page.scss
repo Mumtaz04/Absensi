@@ -41,6 +41,7 @@ ion-content {
   margin-bottom: 20px;
 }
 
+/* INPUT */
 .input-group {
   position: relative;
   margin-bottom: 15px;
@@ -72,6 +73,7 @@ ion-content {
   color: #006c24;
 }
 
+/* PASSWORD */
 .password-group .toggle-icon {
   position: absolute;
   right: 12px;
@@ -80,36 +82,44 @@ ion-content {
   font-size: 20px;
   color: #006c24;
   cursor: pointer;
-  transition: color 0.3s ease;
 }
 
-.password-group .toggle-icon:hover {
-  color: #009c3d;
-}
+/* ===== LOGIN BUTTON ===== */
 
+/* Default — abu-abu (seperti verifikasi email) */
 .login-btn {
   width: 100%;
   padding: 12px;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(180deg, #00b24a 0%, #007a2f 100%);
-  color: white;
+
+  background: #d1d5db;
+  color: #ffffff;
+
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
+
   transition: all 0.3s ease;
-  box-shadow: 0 4px 14px rgba(0, 124, 46, 0.3);
+  box-shadow: none;
 }
 
-.login-btn:hover {
+/* Aktif — hijau (saat email ada 1–2 huruf) */
+.login-btn.active {
+  background: linear-gradient(180deg, #00b24a 0%, #007a2f 100%);
+  box-shadow: 0 4px 14px rgba(0, 124, 46, 0.35);
+}
+
+.login-btn.active:hover {
   background: linear-gradient(180deg, #00c153 0%, #007c2e 100%);
   transform: translateY(-1px);
 }
 
-.login-btn:active {
+.login-btn.active:active {
   transform: scale(0.98);
 }
 
+/* Forgot password */
 .forgot-password {
   width: 100%;
   text-align: right;
@@ -117,75 +127,6 @@ ion-content {
   margin-bottom: 12px;
   font-size: 13px;
   font-weight: 500;
-  color: #007bff; /* warna biru sesuai Figma */
+  color: #007bff;
   cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.forgot-password:hover {
-  text-decoration: underline;
-}
-
-/* 📱 Android (default) */
-@media (max-width: 767px) {
-  .login-card {
-    width: 340px;
-  }
-}
-
-/* 📲 Tablet (layar 768px–1199px) */
-@media (min-width: 768px) and (max-width: 1199px) {
-  ion-content {
-    align-items: center;
-    justify-content: center;
-    padding: 40px 0;
-  }
-
-  .login-card {
-    width: 500px; /* sedikit lebih lebar di tablet */
-    padding: 40px 60px;
-    border-radius: 25px;
-    background: rgba(255, 255, 255, 0.45);
-  }
-
-  .login-card h2 {
-    font-size: 22px;
-  }
-
-  .input-group input {
-    font-size: 15px;
-  }
-}
-
-/* 💻 Web / Desktop (layar 1200px ke atas) */
-@media (min-width: 1200px) {
-  ion-content {
-    align-items: center;
-    justify-content: center;
-    padding-top: 60px;
-  }
-
-.login-card {
-  border-radius: 30px;
-  background: #ffffff;
-  padding: 28px 26px;
-  width: 360px;
-}
-
-.logo-container .logo {
-  width: 150px;
-  height: 150px;
-}
-
-.input-group input {
-  height: 50px;
-  border-radius: 16px;
-}
-
-.login-btn {
-  height: 54px;
-  border-radius: 20px;
-  font-size: 18px;
-  font-weight: 700;
-  }
 }

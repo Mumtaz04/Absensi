@@ -1,20 +1,35 @@
-/* ---------- Global content background (abu-abu seperti Figma) --------- */
-.content-figma {
-  --background: #f3f4f6; /* abu-abu terang */
-  background: var(--background);
+/* ===== Header Atas ===== */
+ion-header ion-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  --background: var(--ion-color-success);
 }
 
-/* ---------- Header / Toolbar ---------- */
-.toolbar-figma {
-  --background: #16a34a;
-  background: var(--background);
-  height: 110px;
-  min-height: 110px;
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.04);
-  z-index: 3;
+ion-header ion-title {
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  position: absolute;
+  top: 30%;
+  left: 51%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+ion-header ion-buttons {
+  position: absolute;
+  left: 8px;
+}
+
+ion-header ion-back-button {
+  color: #fff !important;
+}
+
+.back-btn ion-icon {
+ color: #fff;
+ font-size: 22px;
 }
 
 .back-wrap { display: flex; align-items: center; }
@@ -38,12 +53,146 @@
   letter-spacing: -0.3px;
 }
 
+/* ================= DETAIL POPUP (CENTERED + LEFT STRIP) ================= */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.detail-sheet.center {
+  position: relative;
+  width: 92%;
+  max-width: 420px;
+  background: #f9fafb;
+  border-radius: 16px;
+  padding: 16px 16px 16px 20px; /* kiri lebih lebar utk strip */
+  animation: fadeScale .25s ease;
+  overflow: hidden; /* penting utk strip */
+}
+
+/* STRIP KIRI */
+.detail-sheet::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  border-radius: 16px 0 0 16px;
+}
+
+/* WARNA STRIP SESUAI STATUS (FIGMA) */
+.detail-sheet.disetujui::before {
+  background: #22c55e; /* hijau */
+}
+
+.detail-sheet.menunggu::before {
+  background: linear-gradient(180deg, #facc15, #facc15); /* kuning → oranye */
+}
+
+.detail-sheet.ditolak::before {
+  background: #ef4444; /* merah */
+}
+
+@keyframes fadeScale {
+  from { opacity: 0; transform: scale(.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+  }
+}
+
+.detail-body {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.08);
+}
+
+/* STATUS BADGE (KONSISTEN FIGMA) */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.status-badge.disetujui {
+  background: #e6ffef;
+  color: #059669;
+}
+
+.status-badge.menunggu {
+  background: #fff4d8;
+  color: #b45309;
+}
+
+.status-badge.ditolak {
+  background: #ffeded;
+  color: #dc2626;
+}
+
+/* DETAIL ROW */
+.detail-row {
+  margin-bottom: 14px;
+
+  label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  p, a {
+    font-size: 14px;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  &.danger p {
+    color: #dc2626;
+    font-weight: 600;
+  }
+}
+
+/* tombol tutup */
+.btn-close {
+  margin-top: 14px;
+  --background: #2dd55b;
+  --color: #ffffff;
+  font-weight: 700;
+}
+
+
+
 /* ---------- Filter area (small card-like left aligned) ---------- */
 .filter-area {
   background: transparent;
   padding: 12px 12px 6px 16px;
   margin-top: 0;
   z-index: 2;
+
+  /* TAMBAHAN INI */
+  margin-top: 16px;   /* lebih lega seperti figma */
 }
 
 /* card-like wrapper kecil, sekarang abu-abu lembut (bukan putih) */
@@ -113,7 +262,7 @@
 /* ---------- Cards area ---------- */
 .page-padding {
   padding: 16px;
-  margin-top: 6px;
+  margin-top: -12px;
 }
 
 /* card spacing */

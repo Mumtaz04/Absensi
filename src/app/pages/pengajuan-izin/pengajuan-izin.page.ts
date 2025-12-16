@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
+import { IzinService } from 'src/app/services/izin.service';
 
 @Component({
   selector: 'app-pengajuan-izin',
@@ -56,7 +57,8 @@ export class PengajuanIzinPage implements OnInit, OnDestroy {
     private toastCtrl: ToastController,
     private navCtrl: NavController,
     private renderer: Renderer2,
-    private router: Router
+    private router: Router,
+    private izinService: IzinService // ⬅️ TAMBAH
   ) {}
 
   ngOnInit() {
@@ -218,66 +220,59 @@ export class PengajuanIzinPage implements OnInit, OnDestroy {
   /** Simpan ke localStorage lalu navigasi ke riwayat.
    * Jika nanti punya backend, gantikan penyimpanan ini dengan POST ke API.
    */
-  async confirmSubmit() {
-    this.showSubmitNotice = false;
-    if (!this.alasan || !this.tanggalMulai || !this.tanggalSelesai) {
-      const t = await this.toastCtrl.create({
-        message: 'Harap lengkapi Alasan dan Tanggal Izin.',
-        duration: 2000,
-        color: 'danger',
-      });
-      await t.present();
-      return;
-    }
+async confirmSubmit() {
+  this.showSubmitNotice = false;
 
-    const newIzin = {
-      id: 'local-' + Date.now(),
-      alasan: this.alasan,
-      deskripsi: this.deskripsi,
-      dari: this.tanggalMulai,
-      sampai: this.tanggalSelesai,
-      durasiHari: this.durationInDays,
-      durasi: `${this.durationInDays} hari`,
-      files: this.selectedFileNames,
-      status: 'Menunggu',
-      createdAt: new Date().toISOString(),
-      tanggal_tinjau: null
-    };
-
-    this.loadingSubmit = true;
-
-    try {
-      // Simpan ke localStorage (bisa diganti POST ke backend)
-      const raw = localStorage.getItem('izinList');
-      const arr = raw ? JSON.parse(raw) : [];
-      arr.unshift(newIzin); // taruh di depan
-      localStorage.setItem('izinList', JSON.stringify(arr));
-
-      // juga simpan single key agar halaman riwayat bisa mengambil via history.state
-      // (berguna jika ingin menampilkan animasi atau menyorot entry baru)
-      sessionStorage.setItem('lastCreatedIzin', JSON.stringify(newIzin));
-
-      const toast = await this.toastCtrl.create({
-        message: 'Pengajuan izin berhasil diajukan!',
-        duration: 1400,
-        color: 'success',
-      });
-      await toast.present();
-
-      // navigasi ke riwayat, kirim state juga sebagai cadangan
-      this.router.navigate(['/riwayat-izin'], { state: { newIzin } });
-    } catch (err) {
-      console.error('Gagal menyimpan lokal', err);
-      const t = await this.toastCtrl.create({
-        message: 'Gagal mengajukan izin. Silakan coba lagi.',
-        duration: 2500,
-        color: 'danger',
-      });
-      await t.present();
-    } finally {
-      this.loadingSubmit = false;
-    }
+  if (!this.alasan || !this.tanggalMulai || !this.tanggalSelesai) {
+    const t = await this.toastCtrl.create({
+      message: 'Harap lengkapi Alasan dan Tanggal Izin.',
+      duration: 2000,
+      color: 'danger',
+    });
+    await t.present();
+    return;
   }
+
+  this.loadingSubmit = true;
+
+  try {
+    await this.izinService.ajukan({
+      reason: this.alasan,
+      description: this.deskripsi,
+      start_date: this.tanggalMulai,
+      end_date: this.tanggalSelesai,
+      duration: `${this.durationInDays} hari`, // ⬅️ WAJIB
+      files: this.selectedFiles,
+    });
+
+    const toast = await this.toastCtrl.create({
+      message: 'Pengajuan izin berhasil diajukan',
+      duration: 1500,
+      color: 'success',
+    });
+    await toast.present();
+
+    this.router.navigate(['/riwayat-izin']);
+  } catch (err: any) {
+    console.error('Gagal submit izin', err);
+
+    const msg =
+      err?.message ||
+      err?.errors?.duration?.[0] ||
+      'Gagal mengajukan izin';
+
+    const toast = await this.toastCtrl.create({
+      message: msg,
+      duration: 2500,
+      color: 'danger',
+    });
+    await toast.present();
+  } finally {
+    this.loadingSubmit = false;
+  }
+}
+
+
 
   async onBackPressed() {
     this.showBackNotice = true;

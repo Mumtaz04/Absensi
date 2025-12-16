@@ -1,94 +1,158 @@
 <ion-header>
-  <ion-toolbar class="toolbar-figma">
-    <ion-buttons slot="start" class="back-wrap">
-      <ion-back-button defaultHref="/" class="back-btn" icon="chevron-back-outline"></ion-back-button>
+  <ion-toolbar color="success" class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" class="back-btn" (click)="onBackPressed()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
-
-    <div class="title-wrap">
-      <ion-title class="title-figma">Riwayat Izin</ion-title>
-    </div>
+    <ion-title class="toolbar-title">Riwayat Izin</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<!-- set class content-figma untuk background abu-abu -->
 <ion-content class="content-figma">
-  <!-- filter area: kecil, kiri, menyatu dengan background abu -->
+
+  <!-- FILTER -->
   <div class="filter-area">
     <div class="filter-card-small">
-      <ion-icon name="funnel-outline" class="filter-icon" aria-hidden="true"></ion-icon>
+      <ion-icon name="funnel-outline" class="filter-icon"></ion-icon>
 
-      <div class="filter-pill-small" role="group" aria-label="Filter riwayat izin">
+      <div class="filter-pill-small">
         <ion-select
           interface="popover"
           placeholder="Semua"
           [(ngModel)]="filter"
-          (ionChange)="setFilter(filter)"
-          class="select-no-icon"
-        >
+          (ionChange)="setFilter(filter)">
           <ion-select-option value="semua">Semua</ion-select-option>
           <ion-select-option value="Disetujui">Disetujui</ion-select-option>
           <ion-select-option value="Menunggu">Menunggu</ion-select-option>
           <ion-select-option value="Ditolak">Ditolak</ion-select-option>
         </ion-select>
-
-        <ion-icon name="chevron-down-outline" class="chev" aria-hidden="true"></ion-icon>
+        <ion-icon name="chevron-down-outline" class="chev"></ion-icon>
       </div>
     </div>
   </div>
 
-  <!-- main content: cards area (cards tetap putih) -->
+  <!-- LIST -->
   <div class="page-padding">
     <div *ngIf="filteredIzin()?.length; else emptyState">
       <div *ngFor="let izin of filteredIzin()" class="card-wrap">
-        <ion-card class="izin-card" [class.new]="izin.__isNew">
+
+        <ion-card class="izin-card">
           <ion-card-content>
+
             <div class="card-head">
               <h3 class="title">{{ izin.alasan }}</h3>
               <div class="status-badge" [ngClass]="(izin.status || 'Menunggu').toLowerCase()">
-                <ion-icon [name]="statusIcon(izin.status)" class="status-icon" slot="start"></ion-icon>
-                <span class="status-text">{{ izin.status || 'Menunggu' }}</span>
+                <ion-icon [name]="statusIcon(izin.status)"></ion-icon>
+                {{ izin.status || 'Menunggu' }}
               </div>
             </div>
 
             <div class="date-range">
-              <ng-container *ngIf="izin.dari || izin.sampai; else tanggalField">
-                {{ formatDateShort(izin.dari) }} - {{ formatDateShort(izin.sampai) }}
-              </ng-container>
-              <ng-template #tanggalField>
-                {{ izin.tanggal || '-' }}
-              </ng-template>
+              {{ formatDateShort(izin.dari) }} - {{ formatDateShort(izin.sampai) }}
             </div>
 
             <div class="info-row">
               <ion-icon name="time-outline"></ion-icon>
-              <span>Durasi: {{ izin.durasi || (izin.durasiHari ? (izin.durasiHari + ' hari') : '-') }}</span>
+              <span>Durasi: {{ izin.durasi || (izin.durasiHari + ' hari') }}</span>
             </div>
 
             <div class="info-row desc">
               <ion-icon name="document-text-outline"></ion-icon>
-              <span class="desc-text">{{ izin.deskripsi || izin.alasan || '-' }}</span>
+              <span>{{ izin.deskripsi || izin.alasan }}</span>
             </div>
 
-            <div class="divider" role="separator" aria-hidden="true"></div>
+            <div class="divider"></div>
 
             <div class="card-footer">
               <div class="submitted">
-                Diajukan {{ formatDateShort(izin.createdAt) }}, {{ formatTimeShort(izin.createdAt) }}
+                Diajukan {{ formatDateShort(izin.createdAt) }},
+                {{ formatTimeShort(izin.createdAt) }}
               </div>
 
-              <div class="actions">
-                <ion-button fill="clear" size="small" (click)="toggleDetail(izin)">DETAIL</ion-button>
-              </div>
+              <ion-button fill="clear" size="small" (click)="toggleDetail(izin)">
+                DETAIL
+              </ion-button>
             </div>
+
           </ion-card-content>
         </ion-card>
+
       </div>
     </div>
 
     <ng-template #emptyState>
-      <div class="empty">
-        <p>Tidak ada data izin.</p>
-      </div>
+      <div class="empty">Tidak ada data izin.</div>
     </ng-template>
   </div>
+
+<!-- ================= DETAIL POPUP ================= -->
+<div class="detail-overlay" *ngIf="izinTerpilih" (click)="toggleDetail(null)">
+  <div
+  class="detail-sheet center"
+  [ngClass]="(izinTerpilih.status || 'Menunggu').toLowerCase()"
+  (click)="$event.stopPropagation()">
+
+
+    <div class="detail-header">
+      <h2>Detail</h2>
+      <div
+        class="status-badge"
+        [ngClass]="(izinTerpilih.status || 'Menunggu').toLowerCase()">
+        <ion-icon [name]="statusIcon(izinTerpilih.status)"></ion-icon>
+        {{ izinTerpilih.status || 'Menunggu' }}
+      </div>
+    </div>
+
+    <div class="detail-body">
+
+      <div class="detail-row">
+        <label>Judul Izin</label>
+        <p>{{ izinTerpilih.alasan }}</p>
+      </div>
+
+      <div class="detail-row">
+        <label>Deskripsi / Alasan</label>
+        <p>{{ izinTerpilih.deskripsi || '-' }}</p>
+      </div>
+
+      <div class="detail-row">
+        <label>Waktu / Durasi Cuti</label>
+        <p>
+          {{ formatDateShort(izinTerpilih.dari) }} -
+          {{ formatDateShort(izinTerpilih.sampai) }}
+          ({{ izinTerpilih.durasiHari || izinTerpilih.durasi }} hari)
+        </p>
+      </div>
+
+      <div class="detail-row">
+        <label>Waktu Ditinjau</label>
+        <p>{{ izinTerpilih.tanggal_tinjau || 'Menunggu ditinjau' }}</p>
+      </div>
+
+      <div class="detail-row">
+        <label>File Pendukung</label>
+        <ng-container *ngIf="izinTerpilih.filePendukung && izinTerpilih.filePendukung[0]; else noFile">
+          <a (click)="lihatFile(izinTerpilih.filePendukung[0].url)">
+            {{ izinTerpilih.filePendukung[0].nama }}
+          </a>
+        </ng-container>
+        <ng-template #noFile>-</ng-template>
+      </div>
+
+      <div *ngIf="izinTerpilih.status === 'Ditolak'" class="detail-row danger">
+        <label>Alasan Ditolak</label>
+        <p>{{ izinTerpilih.alasan_ditolak || '-' }}</p>
+      </div>
+
+    </div>
+
+    <ion-button expand="block" class="btn-close" (click)="toggleDetail(null)">
+      Tutup
+    </ion-button>
+
+  </div>
+</div>
+
+
 </ion-content>
